@@ -9,6 +9,8 @@
         <fov value="40"/>
     </camera>
 
+	<envmap type="file" value="../../textures/envmap_clouds_4k.hdr"/>
+
     <!--Light-->
     <model name="Light">
         <vertex position="343.0 548.7 227.0"/>

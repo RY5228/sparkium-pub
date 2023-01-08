@@ -444,17 +444,63 @@ void App::UpdateImGui() {
           ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
       reset_accumulation_ |=
           scene.TextureCombo("Diffuse Texture", &material.diffuse_texture_id);
+
       reset_accumulation_ |= ImGui::ColorEdit3(
           "Specular Color", &material.specular[0],
           ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
       reset_accumulation_ |=
           scene.TextureCombo("Specular Texture", &material.specular_texture_id);
+
       reset_accumulation_ |= ImGui::ColorEdit3(
-          "Transmittance Color", &material.transmittance[0],
+          "Opacity Color", &material.opacity[0],
           ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
+      reset_accumulation_ |=
+          scene.TextureCombo("Opacity Texture", &material.opacity_texture_id);
+
       reset_accumulation_ |= ImGui::ColorEdit3(
           "Emission Color", &material.emission[0],
           ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
+      reset_accumulation_ |=
+          scene.TextureCombo("Emission Texture", &material.emission_texture_id);
+
+      reset_accumulation_ |= ImGui::ColorEdit3(
+          "Transmittance Color", &material.transmittance[0],
+          ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
+      reset_accumulation_ |=
+          ImGui::SliderFloat("IOR", &material.ior,
+                             0.0f, 2.0f, "%.3f");    
+
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Roughness", &material.roughness,
+                             0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          scene.TextureCombo("Roughness Texture", &material.roughness_texture_id);
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Metallic", &material.metallic,
+                             0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          scene.TextureCombo("Metallic Texture", &material.metallic_texture_id);
+
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Sheen", &material.sheen,
+                             0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          scene.TextureCombo("Sheen Texture", &material.sheen_texture_id);
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Clearcoat Thickness", &material.clearcoat_thickness,
+                             0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Clearcoat Roughness", &material.clearcoat_roughness,
+                             0.0f, 1.0f, "%.3f");    
+
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Anisotropy", &material.anisotropy,
+                             0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          ImGui::SliderAngle("Anisotropy Rotation", &material.anisotropy_rotation,
+                             0.0f, 90.0f);    
+      reset_accumulation_ |=
+          scene.TextureCombo("Normal Texture", &material.normal_texture_id);
     }
 
 #if !defined(NDEBUG)
