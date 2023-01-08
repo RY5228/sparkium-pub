@@ -524,7 +524,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
         material.emission.g = mtr.emission[1];
         material.emission.b = mtr.emission[2];
 
-        material.roughness = mtr.shininess * mtr.shininess;
+        material.roughness = mtr.roughness;
         // std::cout << mtr.shininess << std::endl;
 
         material.ior = mtr.ior;
@@ -678,7 +678,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
     material.emission.g = mtr.emission[1];
     material.emission.b = mtr.emission[2];
 
-    material.roughness = mtr.shininess * mtr.shininess;
+    material.roughness = mtr.roughness;
     // std::cout << mtr.shininess << std::endl;
 
     material.ior = mtr.ior;

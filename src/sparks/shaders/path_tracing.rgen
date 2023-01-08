@@ -449,7 +449,8 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
     else if (material.material_type == MATERIAL_TYPE_SPECULAR) {
       wo = -wi;
       vec3 wh = vec3(0.0);
-      ImportanceSamplingSpecular(n, t, material.roughness, wo, wh, wi);
+      float alpha = material.roughness * material.roughness;
+      ImportanceSamplingSpecular(n, t, alpha, wo, wh, wi);
       // return vec3(max(0.0,dot(n,wi)));
       vec3 F0 = material.specular * 
            vec3(texture(texture_samplers[material.specular_texture_id],
@@ -457,7 +458,7 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
       Fr = F0 * dot(wo, wh) / dot(n, wo);
       vec3 F = F0 + (1.0 - F0) * pow(1.0 - max(dot(wo, wh),0.0), 5.0);
       // Fr = F * max(dot(wo, wh),0.0);
-      float k = material.roughness + 1.0;
+      float k = alpha + 1.0;
       k = k * k / 8.0;
       float no = max(dot(n, wo), 0.0);
       float ni = max(dot(n, wi), 0.0);
