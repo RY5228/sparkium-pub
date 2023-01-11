@@ -116,7 +116,7 @@ vec3 ImportanceSamplingLamberrian(vec3 N, vec3 T) {
   return wi;
 }
 
-void ImportanceSamplingSpecular(in vec3 N, in vec3 T, in float roughness, in vec3 wo, out vec3 wh, out vec3 wi) {
+vec3 ImportanceSamplingSpecular(in vec3 N, in vec3 T, in float roughness) {
   float phi = 2.0 * PI * RandomFloat();
   // float theta = acos(1.0 - 2.0 * RandomFloat()) * 0.5;
   float ksi = RandomFloat();  
@@ -125,8 +125,7 @@ void ImportanceSamplingSpecular(in vec3 N, in vec3 T, in float roughness, in vec
   // float theta = acos();
   vec3 B = cross(N, T);
   vec3 W = vec3(sin_theta * cos(phi), sin_theta * sin(phi), cos_theta);
-  wh = T * W.x + B * W.y + N * W.z;
-  wi = 2.0 * wh * dot(wh, wo) - wo; 
+  return T * W.x + B * W.y + N * W.z;
 }
 
 // vec3 SampleLight(vec3 origin, vec3 normal) {
@@ -285,7 +284,8 @@ vec3 SampleEmission(vec3 origin, vec3 origin_normal) {
     // float cos_i_o = max(dot(origin_normal, normal), 0.0);
     if (hit_record.hit_entity_id == emission_entity_id && 
         ray_payload.primitive_id == face_id) {
-      energy = materials[emission_entity_id].emission * materials[emission_entity_id].emission_strength *  
+      energy = materials[emission_entity_id].emission * 
+               materials[emission_entity_id].emission_strength *  
                max(dot(origin_normal, wi), 0.0) * angle *
                object_info.num_faces * guo.num_emissions;
     }
@@ -397,6 +397,53 @@ vec3 SampleEmission2(vec3 origin, vec3 origin_normal) {
   return energy;
 }
 
+float pow5(float x) {
+  float pow2 = x * x;
+  return pow2 * pow2 * x;
+}
+
+float FrDielectric(float cosThetaI, float etaI, float etaT, bool entering) {
+  if (!entering) {
+      float tmp = etaI;
+      etaI = etaT;
+      etaT = tmp;
+  }
+
+  // Compute _cosThetaT_ using Snell's law
+  float sinThetaI = sqrt(max(0.0, 1.0 - cosThetaI * cosThetaI));
+  float sinThetaT = etaI / etaT * sinThetaI;
+
+  // Handle total internal reflection
+  if (sinThetaT >= 1) return 1;
+  float cosThetaT = sqrt(max(0.0, 1.0 - sinThetaT * sinThetaT));
+  float Rparl = ((etaT * cosThetaI) - (etaI * cosThetaT)) /
+                ((etaT * cosThetaI) + (etaI * cosThetaT));
+  float Rperp = ((etaI * cosThetaI) - (etaT * cosThetaT)) /
+                ((etaI * cosThetaI) + (etaT * cosThetaT));
+  return (Rparl * Rparl + Rperp * Rperp) / 2;
+}
+
+float sqr(float x) {
+  return x * x;
+}
+
+float SchlickR0FromEta(float eta) {
+  return sqr(eta - 1.0) / sqr(eta + 1.0);
+}
+
+bool Refract(vec3 wi, vec3 n, float eta, out vec3 wt) {
+    // Compute $\cos \theta_\roman{t}$ using Snell's law
+    float cosThetaI = dot(n, wi);
+    float sin2ThetaI = max(0.0, 1.0 - cosThetaI * cosThetaI);
+    float sin2ThetaT = eta * eta * sin2ThetaI;
+
+    // Handle total internal reflection for transmission
+    if (sin2ThetaT >= 1.0) return false;
+    float cosThetaT = sqrt(1.0 - sin2ThetaT);
+    wt = normalize(eta * -wi + (eta * cosThetaI - cosThetaT) * n);
+    return true;
+}
+
 vec3 SampleRay1(vec3 origin, vec3 direction) {
   vec3 radiance = vec3(0.0);
   vec3 throughput = vec3(1.0);
@@ -421,6 +468,7 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
   // float prob = pow(1e-6, 1.0 / guo.num_bounces);
   float prob = 0.8;
   int cnt = 0;
+  bool pass_diffuse = false;
   for (float b = RandomFloat(); b < prob && cnt < guo.num_bounces; b = RandomFloat()) {
   // float prob = guo.num_bounces / (guo.num_bounces + 1.0);
   // int cnt = 0;
@@ -446,29 +494,34 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
       throughput *= Fr / prob;
 
       radiance += throughput * SampleEmission(p, n) * INV_PI;
+
+      pass_diffuse = true;
     }
     else if (material.material_type == MATERIAL_TYPE_SPECULAR) {
       wo = -wi;
-      vec3 wh = vec3(0.0);
       float alpha = material.roughness * material.roughness;
-      ImportanceSamplingSpecular(n, t, alpha, wo, wh, wi);
+      vec3 wh = ImportanceSamplingSpecular(n, t, alpha);
+      wi = 2.0 * wh * dot(wh, wo) - wo; 
       // return vec3(max(0.0,dot(n,wi)));
       vec3 F0 = material.specular * 
            vec3(texture(texture_samplers[material.specular_texture_id],
                 hit_record.tex_coord));
-      Fr = F0 * dot(wo, wh) / dot(n, wo);
-      vec3 F = F0 + (1.0 - F0) * pow(1.0 - max(dot(wo, wh),0.0), 5.0);
+      // Fr = F0 * dot(wo, wh) / dot(n, wo);
+      float oh = max(dot(wo, wh),0.0);
+      vec3 F = F0 + (1.0 - F0) * pow5(1.0 - oh);
       // Fr = F * max(dot(wo, wh),0.0);
-      float k = alpha + 1.0;
-      k = k * k / 8.0;
+      // float k = alpha + 1.0;
+      // k = k * k / 8.0;
       float no = max(dot(n, wo), 0.0);
       float ni = max(dot(n, wi), 0.0);
       float nh = max(dot(n, wh), 0.0);
-      if (nh == 0.0) {
+      float Vis_SmithVL = no * (ni * (1.0 - alpha) + alpha) + 
+                          ni * (no * (1.0 - alpha) + alpha);
+      if (Vis_SmithVL <= 0.0 || nh == 0.0) {
         Fr = vec3(0.0);
       }
       else {
-        Fr = F * max(dot(wo, wh), 0.0) * ni / (no * (1.0 - k) + k) / (ni * (1.0 - k) + k) / nh;
+        Fr = F * 2.0 * oh * ni / nh / Vis_SmithVL;
       }
       // return vec3(dot(n, wh));
       // float G1 = no / (no * (1.0 - k) + k);
@@ -479,7 +532,47 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
       // throughput *= F0 / prob;
     }
     else if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
-      break;
+      wo = -wi;
+      float alpha = material.roughness * material.roughness;
+      vec3 wh = ImportanceSamplingSpecular(n, t, alpha);
+      float oh = max(dot(wo, wh), 0.0);
+      float F = FrDielectric(oh, 1.0, material.ior, hit_record.front_face);
+      // return vec3(F);
+      vec3 T = sqrt(material.transmittance);
+      Fr = vec3(0.0);
+      if (RandomFloat() < F) {
+      // if (RandomFloat() < 0) {
+        // return vec3(0.0) / prob;
+        // continue;
+        wi = 2.0 * wh * dot(wh, wo) - wo; 
+        float no = max(dot(n, wo), 0.0);
+        float ni = max(dot(n, wi), 0.0);
+        float nh = max(dot(n, wh), 0.0);
+        float Vis_SmithVL = no * (ni * (1.0 - alpha) + alpha) + 
+                            ni * (no * (1.0 - alpha) + alpha);
+        if (Vis_SmithVL > 0.0 && nh > 0.0) {
+          Fr = T * 2.0 * oh * ni / nh / Vis_SmithVL;
+        }
+      }
+      else {
+        // throughput *= vec3(1,0,0);
+        float eta = hit_record.front_face ? (1.0 / material.ior) : (material.ior / 1.0);
+        if (Refract(wo, wh, eta, wi)) {
+          float ih = max(dot(wi, -wh), 0.0);
+          float sqrtDenom = oh + eta * ih;
+          // return vec3(sqrtDenom) / prob;
+
+          float no = max(dot(n, wo), 0.0);
+          float ni = max(dot(-n, wi), 0.0);
+          float nh = max(dot(n, wh), 0.0);
+          float Vis_SmithVL = no * (ni * (1.0 - alpha) + alpha) + 
+                              ni * (no * (1.0 - alpha) + alpha);
+          if (Vis_SmithVL > 0.0 && nh > 0.0 && sqrtDenom > 0.0) {
+            Fr = T * 8.0 * oh * ni * ih * oh / nh / Vis_SmithVL / (sqrtDenom * sqrtDenom);
+          }
+        }
+      }
+      throughput *= Fr / prob;
     }
     else {
       break;
@@ -493,12 +586,23 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
 
     if (!TraceRay(p, wi)) {
       if (material.material_type == MATERIAL_TYPE_SPECULAR) {
-        radiance += SampleEnvmap(wi);
+        if (pass_diffuse) {
+          radiance += throughput * SampleEnvmap(wi);
+        } else {
+          radiance += throughput * SampleEnvmap(wi);
+        } 
       }
       else {
-        vec3 env_ambient = guo.envmap_minor_color + guo.envmap_major_color * 2.0 *
-                    max(0.0, dot(guo.envmap_light_direction, hit_record.normal));
-        radiance += throughput * env_ambient;
+        // vec3 env_ambient = guo.envmap_minor_color + guo.envmap_major_color * 2.0 *
+        //             max(0.0, dot(guo.envmap_light_direction, hit_record.normal));
+        // radiance += throughput * env_ambient;
+        p = hit_record.position;
+        wi = guo.envmap_light_direction;
+        n = hit_record.normal;
+        radiance += throughput * guo.envmap_minor_color;
+        if (!TraceRay(p, wi)) {
+          radiance += throughput * max(dot(wi, n), 0.0) * 2.0 * guo.envmap_major_color;
+        }
       }
       break;
     }

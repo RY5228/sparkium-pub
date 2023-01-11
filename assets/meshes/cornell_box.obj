@@ -114,8 +114,9 @@ f -4 -3 -2 -1
 
 o tall_block
 # usemtl white
-usemtl specular
+# usemtl specular
 # usemtl light
+usemtl trans
 
 v    423.0 330.0 247.0
 v    265.0 330.0 296.0

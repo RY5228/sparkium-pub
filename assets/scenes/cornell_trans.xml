@@ -240,8 +240,9 @@
         <index value="18"/>
         <index value="19"/>
 
-        <material type="lambertian">
-            <diffuse value="1 1 1"/>
+        <material type="transmissive">
+            <transmittance value="1 1 1"/>
+            <ior value="1.5"/>
         </material>
     </model>
 

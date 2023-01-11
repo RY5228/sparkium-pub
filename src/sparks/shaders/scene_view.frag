@@ -44,7 +44,6 @@ void main() {
     color_out = vec4(material.emission * material.emission_strength, 1.0);
   } else if (material.material_type == MATERIAL_TYPE_SPECULAR) {
     mat4 camera_to_world = inverse(global_object.camera);
-    mat4 screen_to_camera = inverse(global_object.projection);
     vec3 origin = vec3(camera_to_world * vec4(0, 0, 0, 1));
     vec3 wi = normalize(position - origin);
     vec3 wo = wi - 2.0 * normal * dot(normal, wi);
@@ -52,6 +51,11 @@ void main() {
         vec4(material.specular * SampleEnvmap(wo), 1.0) *
         texture(texture_samplers[nonuniformEXT(material.specular_texture_id)],
                 tex_coord);
+  } else if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
+    mat4 camera_to_world = inverse(global_object.camera);
+    vec3 origin = vec3(camera_to_world * vec4(0, 0, 0, 1));
+    vec3 wi = normalize(position - origin);
+    color_out = vec4(max(material.transmittance, vec3(0.9)) * SampleEnvmap(wi), 1.0);
   } else {
     color_out =
         vec4(material.diffuse * light, 1.0) *

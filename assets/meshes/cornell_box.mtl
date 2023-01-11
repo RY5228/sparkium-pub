@@ -35,3 +35,7 @@ Ka 0 0 0
 Kd 0 0 0
 Ks 1 1 1
 Pr 0.1
+
+newmtl trans
+Tf 1 1 1
+Ni 1.5

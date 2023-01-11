@@ -465,6 +465,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
   }
 
   tinyobj::ObjReaderConfig reader_config;
+  reader_config.triangulate = false;
   // reader_config.mtl_search_path = "./";  // Path to material files
 
   tinyobj::ObjReader reader;
@@ -582,6 +583,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
 
       // Loop over vertices in the face.
       std::vector<Vertex> face_vertices;
+      std::cout << "\n";
       for (size_t v = 0; v < fv; v++) {
         Vertex vertex{};
         // access to vertex
@@ -590,6 +592,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
         tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
         tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
         vertex.position = {vx, vy, vz};
+        std::cout << vx << " " << vy << " " << vz << std::endl;
         // Check if `normal_index` is zero or positive. negative = no normal
         // data
         if (idx.normal_index >= 0) {
@@ -621,7 +624,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
         Vertex v1 = face_vertices[i];
         Vertex v2 = face_vertices[i + 1];
         auto geometry_normal = glm::normalize(
-            glm::cross(v2.position - v0.position, v1.position - v0.position));
+            glm::cross(v1.position - v0.position, v2.position - v0.position));
         if (v0.normal == glm::vec3{0.0f, 0.0f, 0.0f}) {
           v0.normal = geometry_normal;
         } else if (glm::dot(geometry_normal, v0.normal) < 0.0f) {
