@@ -21,6 +21,8 @@ class App {
   void OnRender();
   void OnClose();
 
+  void OpenFile(const std::string &file_path);
+  void Capture(const std::string &file_path);
   void UpdateImGui();
   void UpdateDynamicBuffer();
   void UpdateHostStencilBuffer();
@@ -41,13 +43,16 @@ class App {
   std::unique_ptr<vulkan::framework::TextureImage> screen_frame_;
   std::unique_ptr<vulkan::framework::TextureImage> render_frame_;
 
-  std::unique_ptr<vulkan::framework::RenderNode> render_node_;
+  std::unique_ptr<vulkan::framework::RenderNode> preview_render_node_;
+  std::unique_ptr<vulkan::framework::RenderNode> preview_render_node_far_;
   std::unique_ptr<vulkan::framework::TextureImage> depth_buffer_;
   std::unique_ptr<vulkan::framework::TextureImage> stencil_buffer_;
   std::unique_ptr<vulkan::Buffer> stencil_device_buffer_;
   std::unique_ptr<vulkan::Buffer> render_frame_device_buffer_;
   std::unique_ptr<vulkan::framework::DynamicBuffer<GlobalUniformObject>>
       global_uniform_buffer_;
+  std::unique_ptr<vulkan::framework::DynamicBuffer<GlobalUniformObject>>
+      global_uniform_buffer_far_;
   std::unique_ptr<vulkan::framework::DynamicBuffer<EntityUniformObject>>
       entity_uniform_buffer_;
   std::unique_ptr<vulkan::framework::DynamicBuffer<Material>>
@@ -102,10 +107,13 @@ class App {
   int hover_entity_id_{-1};
   int selected_entity_id_{-1};
   glm::vec4 hovering_pixel_color_{0.0f};
+  int cursor_x_{-1};
+  int cursor_y_{-1};
 
   bool output_render_result_{false};
   bool reset_accumulation_{true};
   bool rebuild_ray_tracing_pipeline_{false};
   uint32_t accumulated_sample_{0};
+  bool gui_pause_{false};
 };
 }  // namespace sparks

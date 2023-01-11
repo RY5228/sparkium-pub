@@ -29,6 +29,26 @@ float RandomFloat() {
   return float(WangHash(random_device.seed)) / 4294967296.0;
 }
 
+vec2 RandomOnCircle() {
+  float theta = RandomFloat() * PI * 2.0;
+  return vec2(sin(theta), cos(theta));
+}
+
+vec2 RandomInCircle() {
+  return RandomOnCircle() * sqrt(RandomFloat());
+}
+
+vec3 RandomOnSphere() {
+  float theta = RandomFloat() * PI * 2.0;
+  float z = RandomFloat() * 2.0 - 1.0;
+  float xy = sqrt(1.0 - z * z);
+  return vec3(xy * RandomOnCircle(), z);
+}
+
+vec3 RandomInSphere() {
+  return RandomOnSphere() * pow(RandomFloat(), 0.3333333333333333333);
+}
+
 int RandomInt(int lower, int upper) {
   return lower + int(WangHash(random_device.seed) % uint(upper - lower));
 }
