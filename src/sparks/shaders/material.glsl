@@ -1,7 +1,8 @@
 
 struct Material {
-  // vec3 ambient;
-  // int ambient_texture_id;
+  vec3 albedo_color;
+  int albedo_texture_id;
+
   vec3 diffuse;
   int diffuse_texture_id;
 
@@ -30,6 +31,8 @@ struct Material {
   float anisotropy_rotation;
   
   int normal_texture_id;
+  float emission_strength;
+  
   uint material_type;
 };
 

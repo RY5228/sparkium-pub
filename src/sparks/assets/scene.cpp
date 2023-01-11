@@ -30,6 +30,22 @@ Scene::Scene() {
   //                                           glm::vec3{0.0f, 1.0f, 0.0f})));
   // // const Camera camera = ;
   // SetCamera(Camera{40.0f, 0.0f, 3.0f});
+  // Texture envmap;
+  // Texture::Load(u8"../../textures/envmap_clouds_4k.hdr", envmap);
+  // envmap.SetSampleType(SAMPLE_TYPE_LINEAR);
+  // envmap_id_ = AddTexture(envmap, "Clouds");
+  // // AddEntity(
+  // //     AcceleratedMesh({{{-1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+  // //                      {{-1.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+  // //                      {{1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+  // //                      {{1.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}}},
+  // //                     {0, 1, 2, 2, 1, 3}),
+  // //     Material{}, glm::mat4{1.0f});
+  // SetCameraToWorld(glm::inverse(glm::lookAt(glm::vec3{0.278f, 0.273f, -0.800f},
+  //                                           glm::vec3{0.278f, 0.273f, 0.0f},
+  //                                           glm::vec3{0.0f, 1.0f, 0.0f})));
+  // // const Camera camera = ;
+  // SetCamera(Camera{40.0f, 0.0f, 3.0f});
 
   // // Texture texture;
   // // Texture::Load("../../textures/earth.jpg", texture);
@@ -136,6 +152,12 @@ glm::vec3 &Scene::GetCameraPosition() {
 }
 const glm::vec3 &Scene::GetCameraPosition() const {
   return camera_position_;
+}
+float &Scene::GetCameraSpeed() {
+  return camera_speed_;
+}
+const float &Scene::GetCameraSpeed() const {
+  return camera_speed_;
 }
 glm::vec3 &Scene::GetCameraPitchYawRoll() {
   return camera_pitch_yaw_roll_;

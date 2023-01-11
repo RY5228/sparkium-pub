@@ -21,6 +21,7 @@ class App {
   void OnRender();
   void OnClose();
 
+  void OpenFile(const std::string &file_path);
   void Capture(const std::string &file_path);
   void UpdateImGui();
   void UpdateDynamicBuffer();
@@ -106,10 +107,13 @@ class App {
   int hover_entity_id_{-1};
   int selected_entity_id_{-1};
   glm::vec4 hovering_pixel_color_{0.0f};
+  int cursor_x_{-1};
+  int cursor_y_{-1};
 
   bool output_render_result_{false};
   bool reset_accumulation_{true};
   bool rebuild_ray_tracing_pipeline_{false};
   uint32_t accumulated_sample_{0};
+  bool gui_pause_{false};
 };
 }  // namespace sparks

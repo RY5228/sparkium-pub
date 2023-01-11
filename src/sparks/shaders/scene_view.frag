@@ -41,7 +41,7 @@ void main() {
   light += global_object.envmap_major_color *
            max(dot(global_object.envmap_light_direction, normal), 0.0) * 2.0;
   if (material.material_type == MATERIAL_TYPE_EMISSION) {
-    color_out = vec4(material.emission, 1.0);
+    color_out = vec4(material.emission * material.emission_strength, 1.0);
   } else if (material.material_type == MATERIAL_TYPE_SPECULAR) {
     mat4 camera_to_world = inverse(global_object.camera);
     mat4 screen_to_camera = inverse(global_object.projection);
@@ -70,7 +70,7 @@ void main() {
 //   light += global_object.envmap_major_color *
 //            max(dot(global_object.envmap_light_direction, normal), 0.0) * 2.0;
 //   if (material.material_type == MATERIAL_TYPE_EMISSION) {
-//     color_out = vec4(material.emission, 1.0);
+//     color_out = vec4(material.emission * material.emission_strength, 1.0);
 //   } else {
 //     color_out =
 //         vec4(material.diffuse * light, 1.0) *

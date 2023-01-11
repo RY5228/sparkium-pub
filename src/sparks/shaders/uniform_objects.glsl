@@ -17,6 +17,7 @@ struct GlobalUniformObject {
   float aperture;
   float focal_length;
   float clamp;
+  float gamma;
   float aspect;
 };
 

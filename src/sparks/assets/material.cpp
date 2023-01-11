@@ -68,6 +68,12 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
           scene->AddTexture(emission_texture, PathToFilename(path));
     }
   }
+  
+  child_element = material_element->FirstChildElement("emission_strength");
+  if (child_element) {
+    emission_strength = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
 
   child_element = material_element->FirstChildElement("transmittance");
   if (child_element) {

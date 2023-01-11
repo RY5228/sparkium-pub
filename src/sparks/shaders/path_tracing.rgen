@@ -87,7 +87,7 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
     } else {
       Material material = materials[hit_record.hit_entity_id];
       if (material.material_type == MATERIAL_TYPE_EMISSION) {
-        radiance += throughput * material.emission;
+        radiance += throughput * material.emission * material.emission_strength;
         break;
       } else {
         throughput *= material.diffuse *
@@ -285,13 +285,13 @@ vec3 SampleEmission(vec3 origin, vec3 origin_normal) {
     // float cos_i_o = max(dot(origin_normal, normal), 0.0);
     if (hit_record.hit_entity_id == emission_entity_id && 
         ray_payload.primitive_id == face_id) {
-      energy = materials[emission_entity_id].emission *  
+      energy = materials[emission_entity_id].emission * materials[emission_entity_id].emission_strength *  
                max(dot(origin_normal, wi), 0.0) * angle *
                object_info.num_faces * guo.num_emissions;
     }
-    // energy = f0 * area * materials[emission_entity_id].emission * angle;
+    // energy = f0 * area * materials[emission_entity_id].emission * materials[emission_entity_id].emission_strength * angle;
     // return vec3(0.0, 0.0, 1.0);
-    // return cos_i * cos_o * materials[emission_entity_id].emission;
+    // return cos_i * cos_o * materials[emission_entity_id].emission * materials[emission_entity_id].emission_strength;
   }
   hit_record = save_hit_record;
   // energy = clamp(energy, 0.0, 1.0);
@@ -381,15 +381,15 @@ vec3 SampleEmission2(vec3 origin, vec3 origin_normal) {
     // float cos_i_o = max(dot(origin_normal, normal), 0.0);
     if (hit_record.hit_entity_id == emission_entity_id && 
         ray_payload.primitive_id == face_id) {
-      energy = materials[emission_entity_id].emission *  
+      energy = materials[emission_entity_id].emission * materials[emission_entity_id].emission_strength *  
                max(dot(origin_normal, direction), 0.0) * area *
                max(dot(normal, -direction), 0.0) *
                object_info.num_faces * guo.num_emissions /
                (ray_length * ray_length);
     }
-    // energy = f0 * area * materials[emission_entity_id].emission * angle;
+    // energy = f0 * area * materials[emission_entity_id].emission * materials[emission_entity_id].emission_strength * angle;
     // return vec3(0.0, 0.0, 1.0);
-    // return cos_i * cos_o * materials[emission_entity_id].emission;
+    // return cos_i * cos_o * materials[emission_entity_id].emission * materials[emission_entity_id].emission_strength;
   }
   hit_record = save_hit_record;
   // energy = clamp(energy, 0.0, 1.0);
@@ -413,7 +413,7 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
   else {
     material = materials[hit_record.hit_entity_id];
     if (material.material_type == MATERIAL_TYPE_EMISSION) {
-      radiance += throughput * material.emission;
+      radiance += throughput * material.emission * material.emission_strength;
       return radiance;
     }
   }
@@ -426,7 +426,7 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
   // int cnt = 0;
   // for (float b = 0.0; b < prob && cnt < 4 * guo.num_bounces; b = RandomFloat()) {
     // if (material.material_type == MATERIAL_TYPE_EMISSION) {
-    //   radiance += throughput * material.emission;
+    //   radiance += throughput * material.emission * material.emission_strength;
     //   break;
     // }
     // vec3 Li = material.diffuse * 0.5 * INV_PI / dot(n, wi) / dot(r, r);
@@ -506,7 +506,7 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
       radiance += throughput * materials[hit_record.hit_entity_id].emission;
     }
     material = materials[hit_record.hit_entity_id];
-    // radiance += throughput * material.emission;
+    // radiance += throughput * material.emission * material.emission_strength;
 
     // if ((material.material_type & MATERIAL_TYPE_EMISSION) > 0) {
     //   break;
