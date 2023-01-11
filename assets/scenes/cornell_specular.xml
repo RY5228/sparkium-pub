@@ -9,7 +9,7 @@
         <fov value="40"/>
     </camera>
 
-	<envmap type="file" value="../../textures/envmap_clouds_4k.hdr"/>
+	<!-- <envmap type="file" value="../../textures/envmap_clouds_4k.hdr"/> -->
 
     <!--Light-->
     <model name="Light">
@@ -25,7 +25,7 @@
         <index value="2"/>
 
         <material type="emission">
-            <emission value="20.0 20.0 20.0"/>
+            <emission value="30.0 30.0 30.0"/>
         </material>
     </model>
 
@@ -242,7 +242,7 @@
 
         <material type="specular">
             <specular value="1 1 1"/>
-            <roughness value="0.1"/>
+            <roughness value="0.0"/>
         </material>
     </model>
 

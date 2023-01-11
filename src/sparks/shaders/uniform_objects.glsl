@@ -13,6 +13,11 @@ struct GlobalUniformObject {
   int num_samples;
   int num_bounces;
   int num_emissions;
+  float fov;
+  float aperture;
+  float focal_length;
+  float clamp;
+  float aspect;
 };
 
 struct EntityUniformObject {

@@ -54,21 +54,6 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
     }
   }
 
-  child_element = material_element->FirstChildElement("opacity");
-  if (child_element) {
-    opacity = StringToVec3(child_element->FindAttribute("value")->Value());
-  }
-
-  child_element = material_element->FirstChildElement("opacity_texture");
-  if (child_element) {
-    std::string path = child_element->FindAttribute("value")->Value();
-    Texture opacity_texture(1, 1);
-    if (Texture::Load(path, opacity_texture)) {
-      opacity_texture_id =
-          scene->AddTexture(opacity_texture, PathToFilename(path));
-    }
-  }
-
   child_element = material_element->FirstChildElement("emission");
   if (child_element) {
     emission = StringToVec3(child_element->FindAttribute("value")->Value());
@@ -94,10 +79,24 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
     ior = std::stof(child_element->FindAttribute("value")->Value());
   }
 
+  child_element = material_element->FirstChildElement("opacity");
+  if (child_element) {
+    opacity = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("opacity_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture opacity_texture(1, 1);
+    if (Texture::Load(path, opacity_texture)) {
+      opacity_texture_id =
+          scene->AddTexture(opacity_texture, PathToFilename(path));
+    }
+  }
+
   child_element = material_element->FirstChildElement("roughness");
   if (child_element) {
     roughness = std::stof(child_element->FindAttribute("value")->Value());
-    roughness *= roughness;
   }
 
   child_element = material_element->FirstChildElement("roughness_texture");

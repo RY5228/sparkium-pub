@@ -8,27 +8,27 @@ struct Material {
   vec3 specular;
   int specular_texture_id;
 
-  vec3 opacity;
-  int opacity_texture_id;
-
   vec3 emission;
   int emission_texture_id;
 
   vec3 transmittance;
   float ior;
 
+  float opacity;
+  int opacity_texture_id;
   float roughness;
   int roughness_texture_id;
+
   float metallic;
   int metallic_texture_id;
-
   float sheen;
   int sheen_texture_id;
+
   float clearcoat_thickness;
   float clearcoat_roughness;
-
   float anisotropy;
   float anisotropy_rotation;
+  
   int normal_texture_id;
   uint material_type;
 };

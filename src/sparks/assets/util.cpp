@@ -7,6 +7,11 @@
 #include "unordered_map"
 #include "vector"
 
+// clang-format off
+#include "imgui.h"
+#include "ImGuizmo.h"
+// clang-format on
+
 namespace sparks {
 glm::vec3 DecomposeRotation(glm::mat3 R) {
   return {
@@ -86,6 +91,30 @@ glm::mat4 XmlTransformMatrix(const tinyxml2::XMLElement *transform_element) {
     float scale = std::stof(transform_element->FindAttribute("value")->Value());
     // std::cout << "f: " << transform_element->FindAttribute("value")->Value() << std::endl;
     return glm::mat4{scale};
+  } else if (transform_type == "world") {
+    glm::vec3 scale{1.0f};
+    glm::vec3 rotation{0.0f};
+    glm::vec3 translation(0.0f);
+    auto child_element = transform_element->FirstChildElement("scale");
+    if (child_element) {
+      scale = StringToVec3(child_element->FindAttribute("value")->Value());
+    }
+    child_element = transform_element->FirstChildElement("rotation");
+    if (child_element) {
+      rotation = StringToVec3(child_element->FindAttribute("value")->Value());
+    }
+    child_element = transform_element->FirstChildElement("translation");
+    if (child_element) {
+      translation =
+          StringToVec3(child_element->FindAttribute("value")->Value());
+    }
+
+    glm::mat4 matrix;
+    ImGuizmo::RecomposeMatrixFromComponents(
+        reinterpret_cast<float *>(&translation),
+        reinterpret_cast<float *>(&rotation), reinterpret_cast<float *>(&scale),
+        reinterpret_cast<float *>(&matrix));
+    return matrix;
   } else {
     LAND_ERROR("Unknown Transformation Type: {}", transform_type);
     return glm::mat4{1.0f};

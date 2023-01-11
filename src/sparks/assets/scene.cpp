@@ -787,11 +787,11 @@ int Scene::LoadObjFile(const tinyxml2::XMLElement *element) {
   
   if (scene_type == "obj") {
     glm::mat4 transformation = XmlComposeTransformMatrix(element);
-    LoadObjFile(
+    return LoadObjFile(
         element->FirstChildElement("filename")->FindAttribute("value")->Value(),
         transformation);
   }
-
+  return -1;
 }
 
 }  // namespace sparks

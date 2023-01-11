@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene>
+	<camera>
+		<transform type="lookat">
+			<eye value="2.0 1.0 3.0"/>
+			<center value="0.0 0.0 0.0"/>
+			<up value="0.0 1.0 0.0"/>
+		</transform>
+	</camera>
+
+	<envmap type="file" value="../../textures/scythian_tombs_2_4k.hdr"/>
+
+	<model type="obj">
+		<filename value="D:/Seafile/Yao Class/Semester 5/Graphics/models/studio-rendering-braun-ks-20-coffee-maker/coffee.obj"/>
+
+		<material type="lambertian">
+			<diffuse value="0.8 0.8 0.8"/>
+		</material>
+	</model>
+
+</scene>

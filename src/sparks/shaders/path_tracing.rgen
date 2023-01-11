@@ -414,6 +414,7 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
     material = materials[hit_record.hit_entity_id];
     if (material.material_type == MATERIAL_TYPE_EMISSION) {
       radiance += throughput * material.emission;
+      return radiance;
     }
   }
   // radiance += INV_PI * SampleLight(p, n);
@@ -476,6 +477,12 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
       // Fr = F * G * dot(wo, wh) / no;
       throughput *= Fr / prob;
       // throughput *= F0 / prob;
+    }
+    else if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
+      break;
+    }
+    else {
+      break;
     }
 
 

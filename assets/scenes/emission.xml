@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene>
+    <camera>
+        <transform type="lookat">
+            <eye value="278 273 -800"/>
+            <center value="278 273 0"/>
+            <up value="0.0 1.0 0.0"/>
+        </transform>
+        <fov value="40"/>
+    </camera>
+
+    <!--Light-->
+    <model name="Light_0" type="sphere">
+		<center value="111.2 528.7 279.5"/>
+		<radius value="5.0"/>
+
+        <material type="emission">
+            <emission value="20.0 20.0 20.0"/>
+        </material>
+    </model>
+
+    <model name="Light_1" type="sphere">
+		<center value="222.4 528.7 279.5"/>
+		<radius value="10.0"/>
+
+        <material type="emission">
+            <emission value="20.0 20.0 20.0"/>
+        </material>
+    </model>
+
+    <model name="Light_2" type="sphere">
+		<center value="333.6 528.7 279.5"/>
+		<radius value="20.0"/>
+
+        <material type="emission">
+            <emission value="20.0 20.0 20.0"/>
+        </material>
+    </model>
+
+    <model name="Light_3" type="sphere">
+		<center value="444.8 528.7 279.5"/>
+		<radius value="40.0"/>
+
+        <material type="emission">
+            <emission value="20.0 20.0 20.0"/>
+        </material>
+    </model>
+
+	<model name="plane">
+        <vertex position="552.8 100.0   0.0"/>
+        <vertex position="0.0 100.0   0.0"/>
+        <vertex position="0.0 250.0 280"/>
+        <vertex position="549.6 250.0 280"/>
+        <index value="0"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="2"/>
+
+        <material type="specular">
+            <specular value="1.0 0.2 0.2"/>
+			<roughness value="0.1"/>
+        </material>
+	</model>
+
+    <!--floor-->
+    <model name="Floor">
+        <vertex position="552.8 0.0   0.0"/>
+        <vertex position="0.0 0.0   0.0"/>
+        <vertex position="0.0 0.0 559.2"/>
+        <vertex position="549.6 0.0 559.2"/>
+        <index value="0"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="2"/>
+
+        <material type="lambertian">
+            <diffuse value="0.5 0.5 0.5"/>
+        </material>
+    </model>
+
+    <!--back wall-->
+    <model name="Back Wall">
+        <vertex position="549.6   0.0 559.2"/>
+        <vertex position="0.0   0.0 559.2"/>
+        <vertex position="0.0 548.8 559.2"/>
+        <vertex position="556.0 548.8 559.2"/>
+        <index value="0"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="2"/>
+
+        <material type="lambertian">
+            <diffuse value="0.5 0.5 0.5"/>
+        </material>
+    </model>
+
+    <!--right wall-->
+    <model name="Right Wall">
+        <vertex position="0.0   0.0 559.2 "/>
+        <vertex position="0.0   0.0   0.0"/>
+        <vertex position="0.0 548.8   0.0"/>
+        <vertex position="0.0 548.8 559.2"/>
+        <index value="0"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="2"/>
+
+        <material type="lambertian">
+            <diffuse value="0 0.5 0"/>
+        </material>
+    </model>
+
+    <!--left wall-->
+    <model name="Left Wall">
+        <vertex position="552.8   0.0   0.0 "/>
+        <vertex position="549.6   0.0 559.2"/>
+        <vertex position="556.0 548.8 559.2"/>
+        <vertex position="556.0 548.8   0.0"/>
+        <index value="0"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="1"/>
+        <index value="3"/>
+        <index value="2"/>
+
+        <material type="lambertian">
+            <diffuse value="0.5 0 0"/>
+        </material>
+    </model>
+
+</scene>
