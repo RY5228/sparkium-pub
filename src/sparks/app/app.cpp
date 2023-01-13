@@ -469,6 +469,8 @@ void App::UpdateImGui() {
     }
     reset_accumulation_ |= ImGui::SliderInt(
         "Bounces", &renderer_->GetRendererSettings().num_bounces, 1, 128);
+    reset_accumulation_ |= ImGui::SliderFloat(
+        "rrThreshold", &renderer_->GetRendererSettings().rrThreshold, 0, 1);
 
     scene.EntityCombo("Selected Entity", &selected_entity_id_);
 
@@ -539,18 +541,19 @@ void App::UpdateImGui() {
           ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
       reset_accumulation_ |=
           ImGui::SliderFloat("IOR", &material.ior,
-                             0.0f, 2.0f, "%.3f");
+                             1.00000006f, 3.0f, "%.3f");
 
+      reset_accumulation_ |= ImGui::ColorEdit3(
+          "Albedo Color", &material.albedo_color[0],
+          ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
       reset_accumulation_ |=
-          ImGui::SliderFloat("Opacity", &material.opacity, 0.0f, 1.0f, "%.3f");
+          scene.TextureCombo("Albedo Texture", &material.albedo_texture_id);
+
+      reset_accumulation_ |= ImGui::ColorEdit3(
+          "Scatter Distance", &material.scatterDistance[0],
+          ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
       reset_accumulation_ |=
-          scene.TextureCombo("Opacity Texture", &material.opacity_texture_id);
-      
-      reset_accumulation_ |=
-          ImGui::SliderFloat("Roughness", &material.roughness,
-                             0.0f, 1.0f, "%.3f");    
-      reset_accumulation_ |=
-          scene.TextureCombo("Roughness Texture", &material.roughness_texture_id);
+          scene.TextureCombo("Scatter Distance Texture", &material.scatterDistance_texture_id);
 
       reset_accumulation_ |=
           ImGui::SliderFloat("Metallic", &material.metallic,
@@ -559,25 +562,78 @@ void App::UpdateImGui() {
           scene.TextureCombo("Metallic Texture", &material.metallic_texture_id);
 
       reset_accumulation_ |=
+          ImGui::SliderFloat("Roughness", &material.roughness,
+                             0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          scene.TextureCombo("Roughness Texture", &material.roughness_texture_id);
+
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Specular Tint", &material.specularTint,
+                             0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          scene.TextureCombo("Specular Tint Texture", &material.specularTint_texture_id);
+
+      reset_accumulation_ |=
           ImGui::SliderFloat("Sheen", &material.sheen,
                              0.0f, 1.0f, "%.3f");    
       reset_accumulation_ |=
           scene.TextureCombo("Sheen Texture", &material.sheen_texture_id);
       
       reset_accumulation_ |=
-          ImGui::SliderFloat("Clearcoat Thickness", &material.clearcoat_thickness,
+          ImGui::SliderFloat("Clearcoat", &material.clearcoat,
                              0.0f, 1.0f, "%.3f");    
       reset_accumulation_ |=
-          ImGui::SliderFloat("Clearcoat Roughness", &material.clearcoat_roughness,
+          scene.TextureCombo("Clearcoat Texture", &material.clearcoat_texture_id);
+      
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Clearcoat Gloss", &material.clearcoatGloss,
                              0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          scene.TextureCombo("Clearcoat Gloss Texture", &material.clearcoatGloss_texture_id);
 
       reset_accumulation_ |=
           ImGui::SliderFloat("Anisotropy", &material.anisotropy,
                              0.0f, 1.0f, "%.3f");    
       reset_accumulation_ |=
-          ImGui::SliderAngle("Anisotropy Rotation", &material.anisotropy_rotation,
+          scene.TextureCombo("Anisotropy Texture", &material.anisotropy_texture_id);
+
+      reset_accumulation_ |=
+          ImGui::SliderAngle("Anisotropy Rotation", &material.anisotropyRotation,
                              0.0f, 90.0f);    
+      reset_accumulation_ |=
+          scene.TextureCombo("Anisotropy Rotation Texture", &material.anisotropyRotation_texture_id);
+
       
+      reset_accumulation_ |=
+          ImGui::SliderFloat("SpecTrans", &material.specTrans,
+                             0.0f, 1.0f, "%.3f");    
+      reset_accumulation_ |=
+          scene.TextureCombo("SpecTrans Texture", &material.specTrans_texture_id);
+      
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Opacity", &material.opacity, 0.0f, 1.0f, "%.3f");
+      reset_accumulation_ |=
+          scene.TextureCombo("Opacity Texture", &material.opacity_texture_id);
+      
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Flatness", &material.flatness, 0.0f, 1.0f, "%.3f");
+      reset_accumulation_ |=
+          scene.TextureCombo("Flatness Texture", &material.flatness_texture_id);
+      
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Diff Trans", &material.diffTrans, 0.0f, 1.0f, "%.3f");
+      reset_accumulation_ |=
+          scene.TextureCombo("Diff Trans Texture", &material.diffTrans_texture_id);
+      
+      reset_accumulation_ |=
+          ImGui::SliderFloat("Bump", &material.bump, 0.0f, 1.0f, "%.3f");
+      reset_accumulation_ |=
+          scene.TextureCombo("Bump Texture", &material.bump_texture_id);
+
+      bool clicked = ImGui::RadioButton("Thin", material.thin);
+      material.thin ^= clicked;
+      reset_accumulation_ |= clicked;
+
       reset_accumulation_ |=
           scene.TextureCombo("Normal Texture", &material.normal_texture_id);
     }
@@ -708,6 +764,8 @@ void App::UpdateDynamicBuffer() {
       renderer_->GetRendererSettings().num_samples;
   global_uniform_object.num_bounces =
       renderer_->GetRendererSettings().num_bounces;
+  global_uniform_object.rrThreshold =
+      renderer_->GetRendererSettings().rrThreshold;
 
   auto &camera = renderer_->GetScene().GetCamera();
   global_uniform_object.fov = camera.GetFov();
@@ -724,7 +782,11 @@ void App::UpdateDynamicBuffer() {
     auto &entity = entities[i];
     entity_uniform_buffer_->operator[](i).model = entity.GetTransformMatrix();
     material_uniform_buffer_->operator[](i) = entity.GetMaterial();
-    if (entity.GetMaterial().material_type & MATERIAL_TYPE_EMISSION) {
+    if ((entity.GetMaterial().material_type == MATERIAL_TYPE_EMISSION) || 
+        (entity.GetMaterial().material_type == MATERIAL_TYPE_PRINCIPLED &&
+         (entity.GetMaterial().emission != glm::vec3(0) || 
+          entity.GetMaterial().emission_texture_id > 1) &&
+         entity.GetMaterial().emission_strength > 0)) {
       emission_uniform_buffer_->operator[](emission_cnt++) = i;
     }
   }

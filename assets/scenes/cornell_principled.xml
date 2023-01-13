@@ -23,9 +23,11 @@
         <index value="2"/>
         <index value="3"/>
 
-        <material type="emission">
+        <material type="principled">
             <emission value="30.0 30.0 30.0"/>
             <!-- <emission_strength value="30.0"/> -->
+            <ior value="1.5"/>
+            <roughness value="1"/>
         </material>
     </model>
 
@@ -42,8 +44,10 @@
         <index value="2"/>
         <index value="3"/>
 
-        <material type="lambertian">
-            <diffuse value="0.8 0.8 0.8"/>
+        <material type="principled">
+            <albedo value="0.8 0.8 0.8"/>
+            <ior value="1.5"/>
+            <roughness value="1"/>
         </material>
     </model>
 
@@ -60,8 +64,10 @@
         <index value="2"/>
         <index value="3"/>
 
-        <material type="lambertian">
-            <diffuse value="0.8 0.8 0.8"/>
+        <material type="principled">
+            <albedo value="0.8 0.8 0.8"/>
+            <ior value="1.5"/>
+            <roughness value="1"/>
         </material>
     </model>
 
@@ -78,8 +84,10 @@
         <index value="2"/>
         <index value="3"/>
 
-        <material type="lambertian">
-            <diffuse value="0.8 0.8 0.8"/>
+        <material type="principled">
+            <albedo value="0.8 0.8 0.8"/>
+            <ior value="1.5"/>
+            <roughness value="1"/>
         </material>
     </model>
 
@@ -96,8 +104,10 @@
         <index value="2"/>
         <index value="3"/>
 
-        <material type="lambertian">
-            <diffuse value="0.0 0.8 0.0"/>
+        <material type="principled">
+            <albedo value="0.0 0.8 0.0"/>
+            <ior value="1.5"/>
+            <roughness value="1"/>
         </material>
     </model>
 
@@ -114,8 +124,10 @@
         <index value="2"/>
         <index value="3"/>
 
-        <material type="lambertian">
-            <diffuse value="0.8 0.0 0.0"/>
+        <material type="principled">
+            <albedo value="0.8 0.0 0.0"/>
+            <ior value="1.5"/>
+            <roughness value="1"/>
         </material>
     </model>
 
@@ -177,8 +189,10 @@
         <index value="18"/>
         <index value="19"/>
 
-        <material type="lambertian">
-            <diffuse value="1 1 1"/>
+        <material type="principled">
+            <albedo value="1 1 1"/>
+            <ior value="1.5"/>
+            <roughness value="1"/>
         </material>
     </model>
 
@@ -240,9 +254,12 @@
         <index value="18"/>
         <index value="19"/>
 
-        <material type="transmissive">
-            <transmittance value="1 1 1"/>
+        <material type="principled">
+            <albedo value="1 1 1"/>
             <ior value="1.5"/>
+            <metallic value="1"/>
+            <roughness value="0"/>
+            <!-- <specTrans value="1"/> -->
         </material>
     </model>
 

@@ -43,7 +43,6 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
   if (child_element) {
     specular = StringToVec3(child_element->FindAttribute("value")->Value());
   }
-
   child_element = material_element->FirstChildElement("specular_texture");
   if (child_element) {
     std::string path = child_element->FindAttribute("value")->Value();
@@ -69,12 +68,6 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
     }
   }
   
-  child_element = material_element->FirstChildElement("emission_strength");
-  if (child_element) {
-    emission_strength = std::stof(child_element->FindAttribute("value")->Value());
-  }
-
-
   child_element = material_element->FirstChildElement("transmittance");
   if (child_element) {
     transmittance = StringToVec3(child_element->FindAttribute("value")->Value());
@@ -85,33 +78,33 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
     ior = std::stof(child_element->FindAttribute("value")->Value());
   }
 
-  child_element = material_element->FirstChildElement("opacity");
+  child_element = material_element->FirstChildElement("albedo");
   if (child_element) {
-    opacity = std::stof(child_element->FindAttribute("value")->Value());
+    albedo_color = StringToVec3(child_element->FindAttribute("value")->Value());
   }
 
-  child_element = material_element->FirstChildElement("opacity_texture");
+  child_element = material_element->FirstChildElement("albedo_texture");
   if (child_element) {
     std::string path = child_element->FindAttribute("value")->Value();
-    Texture opacity_texture(1, 1);
-    if (Texture::Load(path, opacity_texture)) {
-      opacity_texture_id =
-          scene->AddTexture(opacity_texture, PathToFilename(path));
+    Texture albedo_texture(1, 1);
+    if (Texture::Load(path, albedo_texture)) {
+      albedo_texture_id =
+          scene->AddTexture(albedo_texture, PathToFilename(path));
     }
   }
 
-  child_element = material_element->FirstChildElement("roughness");
+  child_element = material_element->FirstChildElement("scatterDistance");
   if (child_element) {
-    roughness = std::stof(child_element->FindAttribute("value")->Value());
+    scatterDistance = StringToVec3(child_element->FindAttribute("value")->Value());
   }
 
-  child_element = material_element->FirstChildElement("roughness_texture");
+  child_element = material_element->FirstChildElement("scatterDistance_texture");
   if (child_element) {
     std::string path = child_element->FindAttribute("value")->Value();
-    Texture roughness_texture(1, 1);
-    if (Texture::Load(path, roughness_texture)) {
-      roughness_texture_id =
-          scene->AddTexture(roughness_texture, PathToFilename(path));
+    Texture scatterDistance_texture(1, 1);
+    if (Texture::Load(path, scatterDistance_texture)) {
+      scatterDistance_texture_id =
+          scene->AddTexture(scatterDistance_texture, PathToFilename(path));
     }
   }
 
@@ -130,6 +123,36 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
     }
   }
 
+  child_element = material_element->FirstChildElement("roughness");
+  if (child_element) {
+    roughness = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("roughness_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture roughness_texture(1, 1);
+    if (Texture::Load(path, roughness_texture)) {
+      roughness_texture_id =
+          scene->AddTexture(roughness_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("specularTint");
+  if (child_element) {
+    specularTint = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("specularTint_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture specularTint_texture(1, 1);
+    if (Texture::Load(path, specularTint_texture)) {
+      specularTint_texture_id =
+          scene->AddTexture(specularTint_texture, PathToFilename(path));
+    }
+  }
+
   child_element = material_element->FirstChildElement("sheen");
   if (child_element) {
     sheen = std::stof(child_element->FindAttribute("value")->Value());
@@ -145,14 +168,49 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
     }
   }
 
-  child_element = material_element->FirstChildElement("clearcoat_thickness");
+  child_element = material_element->FirstChildElement("sheenTint");
   if (child_element) {
-    clearcoat_thickness = std::stof(child_element->FindAttribute("value")->Value());
+    sheenTint = std::stof(child_element->FindAttribute("value")->Value());
   }
 
-  child_element = material_element->FirstChildElement("clearcoat_roughness");
+  child_element = material_element->FirstChildElement("sheenTint_texture");
   if (child_element) {
-    clearcoat_roughness = std::stof(child_element->FindAttribute("value")->Value());
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture sheenTint_texture(1, 1);
+    if (Texture::Load(path, sheenTint_texture)) {
+      sheenTint_texture_id =
+          scene->AddTexture(sheenTint_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("clearcoat");
+  if (child_element) {
+    clearcoat = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("clearcoat_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture clearcoat_texture(1, 1);
+    if (Texture::Load(path, clearcoat_texture)) {
+      clearcoat_texture_id =
+          scene->AddTexture(clearcoat_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("clearcoatGloss");
+  if (child_element) {
+    clearcoatGloss = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("clearcoatGloss_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture clearcoatGloss_texture(1, 1);
+    if (Texture::Load(path, clearcoatGloss_texture)) {
+      clearcoatGloss_texture_id =
+          scene->AddTexture(clearcoatGloss_texture, PathToFilename(path));
+    }
   }
 
   child_element = material_element->FirstChildElement("anisotropy");
@@ -160,9 +218,111 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
     anisotropy = std::stof(child_element->FindAttribute("value")->Value());
   }
 
-  child_element = material_element->FirstChildElement("anisotropy_rotation");
+  child_element = material_element->FirstChildElement("anisotropy_texture");
   if (child_element) {
-    anisotropy_rotation = std::stof(child_element->FindAttribute("value")->Value());
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture anisotropy_texture(1, 1);
+    if (Texture::Load(path, anisotropy_texture)) {
+      anisotropy_texture_id =
+          scene->AddTexture(anisotropy_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("anisotropyRotation");
+  if (child_element) {
+    anisotropyRotation = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("anisotropyRotation_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture anisotropyRotation_texture(1, 1);
+    if (Texture::Load(path, anisotropyRotation_texture)) {
+      anisotropyRotation_texture_id =
+          scene->AddTexture(anisotropyRotation_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("specTrans");
+  if (child_element) {
+    specTrans = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("specTrans_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture specTrans_texture(1, 1);
+    if (Texture::Load(path, specTrans_texture)) {
+      specTrans_texture_id =
+          scene->AddTexture(specTrans_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("opacity");
+  if (child_element) {
+    opacity = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("opacity_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture opacity_texture(1, 1);
+    if (Texture::Load(path, opacity_texture)) {
+      opacity_texture_id =
+          scene->AddTexture(opacity_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("flatness");
+  if (child_element) {
+    flatness = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("flatness_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture flatness_texture(1, 1);
+    if (Texture::Load(path, flatness_texture)) {
+      flatness_texture_id =
+          scene->AddTexture(flatness_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("diffTrans");
+  if (child_element) {
+    diffTrans = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("diffTrans_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture diffTrans_texture(1, 1);
+    if (Texture::Load(path, diffTrans_texture)) {
+      diffTrans_texture_id =
+          scene->AddTexture(diffTrans_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("bump");
+  if (child_element) {
+    bump = std::stof(child_element->FindAttribute("value")->Value());
+  }
+
+  child_element = material_element->FirstChildElement("bump_texture");
+  if (child_element) {
+    std::string path = child_element->FindAttribute("value")->Value();
+    Texture bump_texture(1, 1);
+    if (Texture::Load(path, bump_texture)) {
+      bump_texture_id =
+          scene->AddTexture(bump_texture, PathToFilename(path));
+    }
+  }
+
+  child_element = material_element->FirstChildElement("thin");
+  if (child_element) {
+    if (std::string(child_element->FindAttribute("value")->Value()) == "true") {
+      thin = true;
+    }
   }
 
   child_element = material_element->FirstChildElement("normal_texture");
@@ -173,6 +333,11 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
       normal_texture_id =
           scene->AddTexture(normal_texture, PathToFilename(path));
     }
+  }
+
+  child_element = material_element->FirstChildElement("emission_strength");
+  if (child_element) {
+    emission_strength = std::stof(child_element->FindAttribute("value")->Value());
   }
 
   // child_element = material_element->FirstChildElement("emission_strength");

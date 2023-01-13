@@ -1,0 +1,3 @@
+struct DisneyBSSRDF {
+    int a;
+};

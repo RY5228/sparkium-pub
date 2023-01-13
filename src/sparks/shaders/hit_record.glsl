@@ -9,9 +9,26 @@ struct HitRecord {
 
   vec3 base_color;
   vec3 emission;
-  float emission_strength;
+  vec3 scatterDistance;
+  float metallic;
+  float roughness;
+  float specularTint;
+  float sheen;
+  float sheenTint;
+  float clearcoat;
+  float clearcoatGloss;
+  float anisotropy;
+  float anisotropyRotation;
+  float specTrans;
+  float opacity;
+  float flatness;
+  float diffTrans;
+  float bump;
+  float ior;
+  bool thin;
   // float alpha;
   uint material_type;
+  uint BxDFType;
 };
 
 HitRecord GetHitRecord(RayPayload ray_payload, vec3 origin, vec3 direction) {
@@ -51,22 +68,88 @@ HitRecord GetHitRecord(RayPayload ray_payload, vec3 origin, vec3 direction) {
       mat.albedo_color *
       texture(texture_samplers[mat.albedo_texture_id], hit_record.tex_coord)
           .xyz;
-  hit_record.emission = mat.emission;
-  hit_record.emission_strength = mat.emission_strength;
+  hit_record.emission = mat.emission * mat.emission_strength *
+      texture(texture_samplers[mat.emission_texture_id], hit_record.tex_coord)
+          .xyz;
+  hit_record.scatterDistance =
+      mat.scatterDistance *
+      texture(texture_samplers[mat.scatterDistance_texture_id], hit_record.tex_coord)
+          .xyz;
+  hit_record.metallic =
+      mat.metallic *
+      texture(texture_samplers[mat.metallic_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.roughness =
+      mat.roughness *
+      texture(texture_samplers[mat.roughness_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.specularTint =
+      mat.specularTint *
+      texture(texture_samplers[mat.specularTint_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.sheen =
+      mat.sheen *
+      texture(texture_samplers[mat.sheen_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.sheenTint =
+      mat.sheenTint *
+      texture(texture_samplers[mat.sheenTint_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.clearcoat =
+      mat.clearcoat *
+      texture(texture_samplers[mat.clearcoat_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.clearcoatGloss =
+      mat.clearcoatGloss *
+      texture(texture_samplers[mat.clearcoatGloss_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.anisotropy =
+      mat.anisotropy *
+      texture(texture_samplers[mat.anisotropy_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.anisotropyRotation =
+      mat.anisotropyRotation *
+      texture(texture_samplers[mat.anisotropyRotation_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.specTrans =
+      mat.specTrans *
+      texture(texture_samplers[mat.specTrans_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.opacity =
+      mat.opacity *
+      texture(texture_samplers[mat.opacity_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.flatness =
+      mat.flatness *
+      texture(texture_samplers[mat.flatness_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.diffTrans =
+      mat.diffTrans *
+      texture(texture_samplers[mat.diffTrans_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.bump =
+      mat.bump *
+      texture(texture_samplers[mat.bump_texture_id], hit_record.tex_coord)
+          .x;
+  hit_record.ior = mat.ior;
+  hit_record.thin = mat.thin;
+  // hit_record.emission_strength = mat.emission_strength;
   // hit_record.alpha = mat.alpha;
   hit_record.material_type = mat.material_type;
+  hit_record.BxDFType = mat.BxDFType;
+
 
   if (dot(hit_record.geometry_normal, hit_record.normal) < 0.0) {
     hit_record.geometry_normal = -hit_record.geometry_normal;
   }
 
-  hit_record.front_face = true;
-  if (dot(direction, hit_record.geometry_normal) > 0.0) {
-    hit_record.front_face = false;
-    hit_record.geometry_normal = -hit_record.geometry_normal;
-    hit_record.normal = -hit_record.normal;
-    hit_record.tangent = -hit_record.tangent;
-  }
+  // hit_record.front_face = true;
+  // if (dot(direction, hit_record.geometry_normal) > 0.0) {
+  //   hit_record.front_face = false;
+    // hit_record.geometry_normal = -hit_record.geometry_normal;
+  //   hit_record.normal = -hit_record.normal;
+  //   hit_record.tangent = -hit_record.tangent;
+  // }
 
   return hit_record;
 }

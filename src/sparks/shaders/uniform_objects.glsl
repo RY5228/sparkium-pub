@@ -19,6 +19,7 @@ struct GlobalUniformObject {
   float clamp;
   float gamma;
   float aspect;
+  float rrThreshold;
 };
 
 struct EntityUniformObject {
