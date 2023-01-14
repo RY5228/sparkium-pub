@@ -136,3 +136,15 @@ float PowerHeuristic(int nf, float fPdf, int ng, float gPdf) {
     return (f * f) / (f * f + g * g);
 }
 
+vec2 UniformSampleTriangle(vec2 u) {
+    float su0 = sqrt(u[0]);
+    return vec2(1 - su0, u[1] * su0);
+}
+
+vec3 UniformSampleHemisphere(vec2 u) {
+    float z = u[0];
+    float r = sqrt(max(0, 1. - z * z));
+    float phi = 2 * Pi * u[1];
+    return vec3(r * cos(phi), r * sin(phi), z);
+}
+

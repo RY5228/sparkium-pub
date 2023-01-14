@@ -19,7 +19,7 @@ struct GlobalUniformObject {
   float fov{glm::radians(60.0f)};
   float aperture{0.0f};
   float focal_length{3.0f};
-  float clamp{100.0f};
+  float clamp{10.0f};
   float gamma{2.2f};
   float aspect{1.0f};
   float rrThreshold{0.8f};

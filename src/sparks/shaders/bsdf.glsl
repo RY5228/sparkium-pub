@@ -421,7 +421,7 @@ vec3 Sample_f(BSDF bsdf, vec3 woWorld, out vec3 wiWorld,
     int matchingComps = NumComponents(bsdf, type);
     if (matchingComps == 0) {
         pdf = 0;
-        if (sampledType > 0) sampledType = 0;
+        sampledType = 0;
         return vec3(0);
     }
     int comp =
@@ -444,7 +444,7 @@ vec3 Sample_f(BSDF bsdf, vec3 woWorld, out vec3 wiWorld,
 //     return vec3(0);
 // else 
 //     return vec3(chosen * matchingComps);
-    if (sampledType > 0) sampledType = bxdf_type;
+    sampledType = bxdf_type;
     // if ((bxdf_type & BSDF_TRANSMISSION) > 0) {
     //     pdf = 0.1;
     //     wi = wo;
@@ -455,7 +455,7 @@ vec3 Sample_f(BSDF bsdf, vec3 woWorld, out vec3 wiWorld,
 // pdf = 1;
 // return f_ * 2;
     if (pdf == 0) {
-        if (sampledType > 0) sampledType = 0;
+        sampledType = 0;
         return vec3(0);
     }
     wiWorld = LocalToWorld(bsdf, wi);

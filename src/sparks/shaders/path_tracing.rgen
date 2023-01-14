@@ -78,6 +78,21 @@ bool TraceRay(vec3 origin, vec3 direction) {
   }
 }
 
+bool TraceRayNoRecord(vec3 origin, vec3 direction) {
+  float tmin = 1e-3;
+  float tmax = 1e5;
+
+  ray_payload.t = -1.0;
+  ray_payload.barycentric = vec3(0.0);
+  ray_payload.object_id = 0;
+  ray_payload.primitive_id = 0;
+  ray_payload.object_to_world = mat4x3(1.0);
+
+  traceRayEXT(scene, gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, origin, tmin,
+              direction, tmax, 0);
+  return ray_payload.t > 0;
+}
+
 vec3 SampleRay(vec3 origin, vec3 direction) {
   vec3 radiance = vec3(0.0);
   vec3 throughput = vec3(1.0);
@@ -812,17 +827,171 @@ vec3 SampleRay1(vec3 origin, vec3 direction) {
   return radiance;
 }
 
-vec3 Sample_Li(vec3 origin, vec3 origin_norm, out float pdf, out vec3 wi) {
-  pdf = 0.0;
-  if (guo.num_emissions == 0) {
-    return vec3(0);
-  }
-  vec3 Li = vec3(0.0);
-  uint emission_id = RandomInt(guo.num_emissions);
+// vec3 Sample_Li(vec3 origin, vec3 origin_norm, out float pdf, out vec3 wi) {
+//   pdf = 0.0;
+//   if (guo.num_emissions == 0) {
+//     return vec3(0);
+//   }
+//   vec3 Li = vec3(0.0);
+//   uint emission_id = RandomInt(guo.num_emissions);
 
-  uint emission_entity_id = emissions[emission_id];
+//   uint emission_entity_id = emissions[emission_id];
+//   ObjectInfo object_info = object_infos[emission_entity_id];
+//   uint face_id = RandomInt(object_info.num_faces);
+//   Vertex v0 = GetVertex(
+//       object_info.vertex_offset +
+//       indices[object_info.index_offset + face_id * 3 + 0]);
+//   Vertex v1 = GetVertex(
+//       object_info.vertex_offset +
+//       indices[object_info.index_offset + face_id * 3 + 1]);
+//   Vertex v2 = GetVertex(
+//       object_info.vertex_offset +
+//       indices[object_info.index_offset + face_id * 3 + 2]);
+//   mat3 object_to_world = mat3(entity_objects[emission_entity_id].model);
+//   mat3 positions = mat3(entity_objects[emission_entity_id].model * 
+//                         mat3x4(vec4(v0.position, 1.0), vec4(v1.position, 1.0), 
+//                                vec4(v2.position, 1.0)));
+
+//   float angle;
+//   SampleSolidAngle(origin, positions, angle, wi);
+//   HitRecord save_hit_record = hit_record;
+//   if (TraceRay(origin, wi)) {
+//     if (hit_record.hit_entity_id == emission_entity_id && 
+//         ray_payload.primitive_id == face_id) {
+//       float ipdf = angle * object_info.num_faces * guo.num_emissions;
+//       if (dot(origin_norm, wi) > 0) {
+//         Li = materials[emission_entity_id].emission * 
+//                materials[emission_entity_id].emission_strength;
+//       }
+//       if (ipdf > 0.0) {
+//         pdf = 1.0 / ipdf;
+//       }
+//     }
+//   }
+//   hit_record = save_hit_record;
+//   return Li;
+// }
+
+// vec3 UniformSampleOneLight(BSDF bsdf, vec3 wo, vec2 uScattering) {
+//     uint bsdfFlags = BSDF_ALL & ~BSDF_SPECULAR;
+//     vec3 Ld = vec3(0.f);
+//     // Sample light source with multiple importance sampling
+//     vec3 wi;
+//     float lightPdf = 0, scatteringPdf = 0;
+//     vec3 Li = Sample_Li(hit_record.position, hit_record.normal, lightPdf, wi);
+//     if (lightPdf > 0 && Li != vec3(0)) {
+//         // Compute BSDF or phase function's value for light sample
+//         vec3 f_;
+//         // Evaluate BSDF for light sampling strategy
+//         f_ = f(bsdf, wo, wi, bsdfFlags) *
+//             AbsDot(wi, hit_record.normal);
+//         scatteringPdf = Pdf(bsdf, wo, wi, bsdfFlags);
+//         if (f_ != vec3(0)) {
+//             // Add light's contribution to reflected radiance
+//             float weight =
+//                 PowerHeuristic(1, lightPdf, 1, scatteringPdf);
+//             Ld += f_ * Li * weight / lightPdf;
+//         }
+//     }
+//     {
+//         vec3 f_;
+//         bool sampledSpecular = false;
+//             // Sample scattered direction for surface interactions
+//         uint sampledType;
+//         f_ = Sample_f(bsdf, wo, wi, uScattering, scatteringPdf,
+//                                   bsdfFlags, sampledType);
+//         f_ *= AbsDot(wi, hit_record.normal);
+//         sampledSpecular = (sampledType & BSDF_SPECULAR) != 0;
+//         if (f_ != vec3(0) && scatteringPdf > 0) {
+//             // Account for light contributions along sampled direction _wi_
+//             float weight = 1;
+//             if (!sampledSpecular) {
+//                 lightPdf = light.Pdf_Li(it, wi);
+//                 if (lightPdf == 0) return Ld;
+//                 weight = PowerHeuristic(1, scatteringPdf, 1, lightPdf);
+//             }
+
+//             // Find intersection and compute transmittance
+//             SurfaceInteraction lightIsect;
+//             Ray ray = it.SpawnRay(wi);
+//             vec3 Tr(1.f);
+//             bool foundSurfaceInteraction =
+//                 handleMedia ? scene.IntersectTr(ray, sampler, &lightIsect, &Tr)
+//                             : scene.Intersect(ray, &lightIsect);
+
+//             // Add light contribution from material sampling
+//             vec3 Li(0.f);
+//             if (foundSurfaceInteraction) {
+//                 if (lightIsect.primitive->GetAreaLight() == &light)
+//                     Li = lightIsect.Le(-wi);
+//             } else
+//                 Li = light.Le(ray);
+//             if (!Li.IsBlack()) Ld += f * Li * Tr * weight / scatteringPdf;
+//         }
+//     }
+//     return Ld;
+// }
+
+void SampleSolidAngle(vec2 uS, vec3 origin, mat3 positions, out float area, out vec3 wi) {
+  vec3 A = normalize(positions[0] - origin);
+  vec3 B = normalize(positions[1] - origin);
+  vec3 C = normalize(positions[2] - origin);
+  float cosa = dot(B, C);
+  float sina = sqrt(1.0 - cosa * cosa);
+  float cosb = dot(C, A);
+  float sinb = sqrt(1.0 - cosb * cosb);
+  float cosc = dot(A, B);
+  float sinc = sqrt(1.0 - cosc * cosc);
+  float cosA = (cosa - cosb * cosc) / (sinb * sinc);
+  float cosB = (cosb - cosc * cosa) / (sinc * sina);
+  float cosC = (cosc - cosa * cosb) / (sina * sinb);
+  float alpha = acos(cosA);
+  float sinA = sin(alpha);
+  float beta = acos(cosB);
+  float gamma = acos(cosC);
+  area = max(alpha + beta + gamma - PI, 0.0);
+
+  float area_h = uS[0] * area;
+  float s = sin(area_h - alpha);
+  float t = cos(area_h - alpha);
+  float u = t - cosA;
+  float v = s + sinA * cosc;
+  float q = ((v * t - u * s) * cosA - v) / ((v * s + u * t) * sinA);
+  vec3 CIA = normalize(C - dot(C, A) * A);
+  vec3 C_h = q * A + sqrt(1.0 - q * q) * CIA;
+  float z = 1.0 - uS[1] * (1.0 - dot(C_h, B));
+  vec3 C_hIB = normalize(C_h - dot(C_h, B) * B);
+  wi = z * B + sqrt(1 - z * z) * C_hIB;
+
+  // float alpha = RandomFloat() * acos(cosa);
+  // vec3 B_I_C = normalize(C - dot(C, B) * B);
+  // vec3 B_new = cos(alpha) * B + sin(alpha) * B_I_C;
+  // float cos_theta = dot(A, B_new);
+  // float cos_beta = 1.0 - (1.0 - cos_theta) * RandomFloat();
+  // vec3 A_I_B_new = normalize(B_new - dot(B_new, A) * A);
+  // wi = cos_beta * A + sqrt(1.0 - cos_beta * cos_beta) * A_I_B_new;
+}
+
+vec3 Sample_Li(int emission_entity_id, uint face_id, vec2 uLight, out vec3 wi, 
+                out float pdf, out bool visibility) {
+  vec3 Li = vec3(0);
+  visibility = false;
+  pdf = 0;
+  vec3 origin = hit_record.position;
+  vec3 origin_norm = hit_record.normal;
+  if (emission_entity_id == -1) {
+    pdf = 2.0 * INV_PI;
+    vec3 w = UniformSampleHemisphere(uLight);
+    vec3 tangent = hit_record.tangent;
+    vec3 B = normalize(cross(origin_norm, tangent));
+    vec3 wi = normalize(tangent * w.x + B * w.y + origin_norm * w.z);
+    if (!TraceRayNoRecord(origin, wi)) {
+      Li = SampleEnvmap(wi);
+      visibility = true;
+    }
+    return Li;
+  }
   ObjectInfo object_info = object_infos[emission_entity_id];
-  uint face_id = RandomInt(object_info.num_faces);
   Vertex v0 = GetVertex(
       object_info.vertex_offset +
       indices[object_info.index_offset + face_id * 3 + 0]);
@@ -835,35 +1004,74 @@ vec3 Sample_Li(vec3 origin, vec3 origin_norm, out float pdf, out vec3 wi) {
   mat3 object_to_world = mat3(entity_objects[emission_entity_id].model);
   mat3 positions = mat3(entity_objects[emission_entity_id].model * 
                         mat3x4(vec4(v0.position, 1.0), vec4(v1.position, 1.0), 
-                               vec4(v2.position, 1.0)));
+                              vec4(v2.position, 1.0)));
 
   float angle;
-  SampleSolidAngle(origin, positions, angle, wi);
-  HitRecord save_hit_record = hit_record;
-  if (TraceRay(origin, wi)) {
-    if (hit_record.hit_entity_id == emission_entity_id && 
-        ray_payload.primitive_id == face_id) {
-      float ipdf = angle * object_info.num_faces * guo.num_emissions;
-      if (dot(origin_norm, wi) > 0) {
-        Li = materials[emission_entity_id].emission * 
+  SampleSolidAngle(uLight, origin, positions, angle, wi);
+  float ipdf = angle;
+  if (ipdf == 0) return vec3(0);
+  pdf = 1.0 / ipdf;
+  if (TraceRayNoRecord(origin, wi)) {
+    if (ray_payload.object_id == emission_entity_id && 
+        ray_payload.primitive_id == face_id && 
+        dot(origin_norm, wi) > 0) {
+      Li = materials[emission_entity_id].emission * 
                materials[emission_entity_id].emission_strength;
-      }
-      if (ipdf > 0.0) {
-        pdf = 1.0 / ipdf;
-      }
+      visibility = true;
     }
   }
-  hit_record = save_hit_record;
   return Li;
 }
 
-vec3 UniformSampleOneLight(BSDF bsdf, vec3 wo) {
+float Pdf_Li(vec3 wi) {
+  vec3 origin = hit_record.position;
+  if (!TraceRayNoRecord(origin, wi)) return 2.0 * INV_PI;
+  ObjectInfo object_info = object_infos[ray_payload.object_id];
+  Vertex v0 = GetVertex(
+      object_info.vertex_offset +
+      indices[object_info.index_offset + ray_payload.primitive_id * 3 + 0]);
+  Vertex v1 = GetVertex(
+      object_info.vertex_offset +
+      indices[object_info.index_offset + ray_payload.primitive_id * 3 + 1]);
+  Vertex v2 = GetVertex(
+      object_info.vertex_offset +
+      indices[object_info.index_offset + ray_payload.primitive_id * 3 + 2]);
+  mat3 object_to_world = mat3(entity_objects[ray_payload.object_id].model);
+  mat3 positions = mat3(entity_objects[ray_payload.object_id].model * 
+                        mat3x4(vec4(v0.position, 1.0), vec4(v1.position, 1.0), 
+                              vec4(v2.position, 1.0)));
+  vec3 A = normalize(positions[0] - origin);
+  vec3 B = normalize(positions[1] - origin);
+  vec3 C = normalize(positions[2] - origin);
+  float cosa = dot(B, C);
+  float sina = sqrt(1.0 - cosa * cosa);
+  float cosb = dot(C, A);
+  float sinb = sqrt(1.0 - cosb * cosb);
+  float cosc = dot(A, B);
+  float sinc = sqrt(1.0 - cosc * cosc);
+  float cosA = (cosa - cosb * cosc) / (sinb * sinc);
+  float cosB = (cosb - cosc * cosa) / (sinc * sina);
+  float cosC = (cosc - cosa * cosb) / (sina * sinb);
+  float alpha = acos(cosA);
+  float sinA = sin(alpha);
+  float beta = acos(cosB);
+  float gamma = acos(cosC);
+  float area = max(alpha + beta + gamma - PI, 0.0);
+  if (area == 0) return 0;
+  return 1.0 / area;
+}
+
+vec3 EstimateDirect(BSDF bsdf, vec3 wo, vec2 uScattering, vec2 uLight,
+                        int emission_entity_id, uint face_id) {
     uint bsdfFlags = BSDF_ALL & ~BSDF_SPECULAR;
     vec3 Ld = vec3(0.f);
     // Sample light source with multiple importance sampling
     vec3 wi;
     float lightPdf = 0, scatteringPdf = 0;
-    vec3 Li = Sample_Li(hit_record.position, hit_record.normal, lightPdf, wi);
+    bool visibility;
+    vec3 Li = Sample_Li(emission_entity_id, face_id, uLight, wi, lightPdf, visibility);
+    // VLOG(2) << "EstimateDirect uLight:" << uLight << " -> Li: " << Li << ", wi: "
+    //         << wi << ", pdf: " << lightPdf;
     if (lightPdf > 0 && Li != vec3(0)) {
         // Compute BSDF or phase function's value for light sample
         vec3 f_;
@@ -872,13 +1080,84 @@ vec3 UniformSampleOneLight(BSDF bsdf, vec3 wo) {
             AbsDot(wi, hit_record.normal);
         scatteringPdf = Pdf(bsdf, wo, wi, bsdfFlags);
         if (f_ != vec3(0)) {
+            // Compute effect of visibility for light source sample
+            if (!visibility) Li = vec3(0);
+
             // Add light's contribution to reflected radiance
-            float weight =
-                PowerHeuristic(1, lightPdf, 1, scatteringPdf);
-            Ld += f_ * Li * weight / lightPdf;
+            if (Li != vec3(0)) {
+                float weight =
+                    PowerHeuristic(1, lightPdf, 1, scatteringPdf);
+                Ld += f_ * Li * weight / lightPdf;
+            }
+        }
+    }
+
+    // Sample BSDF with multiple importance sampling
+    {
+        vec3 f_;
+        bool sampledSpecular = false;
+        // Sample scattered direction for surface interactions
+        uint sampledType;
+        f_ = Sample_f(bsdf, wo, wi, uScattering, scatteringPdf,
+                                  bsdfFlags, sampledType);
+        f_ *= AbsDot(wi, hit_record.normal);
+        sampledSpecular = (sampledType & BSDF_SPECULAR) != 0;
+        if (f_ != vec3(0) && scatteringPdf > 0) {
+            // Account for light contributions along sampled direction _wi_
+            float weight = 1;
+            if (!sampledSpecular) {
+                lightPdf = Pdf_Li(wi);
+                if (lightPdf == 0) return Ld;
+                weight = PowerHeuristic(1, scatteringPdf, 1, lightPdf);
+            }
+
+            // Find intersection and compute transmittance
+            // SurfaceInteraction lightIsect;
+            // Ray ray = it.SpawnRay(wi);
+            // vec3 Tr(1.f);
+            HitRecord save_hit_record = hit_record;
+            bool foundSurfaceInteraction = TraceRay(hit_record.position, wi);
+                // handleMedia ? scene.IntersectTr(ray, sampler, &lightIsect, &Tr)
+                //             : scene.Intersect(ray, &lightIsect);
+
+            // Add light contribution from material sampling
+            vec3 Li = vec3(0.f);
+            if (foundSurfaceInteraction) {
+                if (int(ray_payload.object_id) == emission_entity_id &&
+                      ray_payload.primitive_id == face_id) {
+                    Li = hit_record.emission;
+                }
+            } else
+                Li = SampleEnvmap(wi);
+            hit_record = save_hit_record;
+            if (Li != vec3(0)) Ld += f_ * Li * weight / scatteringPdf;
         }
     }
     return Ld;
+}
+
+vec3 UniformSampleOneLight(BSDF bsdf, vec3 wo) {
+    // Randomly choose a single light to sample, _light_
+    int nLights = guo.num_emissions;
+    int emission_id = RandomInt(-1, nLights);
+    float lightPdf = 1.0 / (1 + nLights);
+    int emission_entity_id;
+    uint face_id;
+    if (emission_id == -1) {
+      emission_entity_id = -1;
+      face_id = 0;
+    }
+    else {
+      emission_entity_id = int(emissions[emission_id]);
+      uint nFaces = object_infos[emission_entity_id].num_faces;    
+      if (nFaces == 0) return vec3(0);
+      face_id = RandomInt(nFaces);
+      lightPdf /= nFaces;
+    }
+    vec2 uLight = vec2(RandomFloat(), RandomFloat());
+    vec2 uScattering = vec2(RandomFloat(), RandomFloat());
+    return EstimateDirect(bsdf, wo, uScattering, uLight,
+                        emission_entity_id, face_id) / lightPdf;
 }
 
 vec3 SampleRay2(vec3 origin, vec3 direction) {
@@ -925,7 +1204,7 @@ vec3 SampleRay2(vec3 origin, vec3 direction) {
             continue;
         }
 
-        // const Distribution1D *distrib = lightDistribution->Lookup(isect.p);
+        // Distribution1D *distrib = lightDistribution->Lookup(isect.p);
 
         // Sample illumination from lights to find path contribution.
         // (But skip this for perfectly specular BSDFs.)
@@ -935,7 +1214,7 @@ vec3 SampleRay2(vec3 origin, vec3 direction) {
             // VLOG(2) << "Sampled direct lighting Ld = " << Ld;
             // if (Ld.IsBlack()) ++zeroRadiancePaths;
             // CHECK_GE(Ld.y(), 0.f);
-            L += Ld;
+            L += clamp(Ld, 0, guo.clamp);
         }
 
         // Sample BSDF to get new path direction
@@ -972,7 +1251,7 @@ vec3 SampleRay2(vec3 origin, vec3 direction) {
         //     // Importance sample the BSSRDF
         //     SurfaceInteraction pi;
         //     vec3 S = isect.bssrdf->Sample_S(
-        //         scene, sampler.Get1D(), sampler.Get2D(), arena, &pi, &pdf);
+        //         scene, sampler.Get1D(), vec2(RandomFloat()), arena, &pi, &pdf);
         //     DCHECK(!isinf(beta.y()));
         //     if (S.IsBlack() || pdf == 0) break;
         //     beta *= S / pdf;
@@ -982,7 +1261,7 @@ vec3 SampleRay2(vec3 origin, vec3 direction) {
         //                                       lightDistribution->Lookup(pi.p));
 
         //     // Account for the indirect subsurface scattering component
-        //     vec3 f = pi.bsdf->Sample_f(pi.wo, &wi, sampler.Get2D(), &pdf,
+        //     vec3 f = pi.bsdf->Sample_f(pi.wo, &wi, vec2(RandomFloat()), &pdf,
         //                                    BSDF_ALL, &flags);
         //     if (f.IsBlack() || pdf == 0) break;
         //     beta *= f * AbsDot(wi, pi.shading.n) / pdf;
@@ -1006,8 +1285,8 @@ vec3 SampleRay2(vec3 origin, vec3 direction) {
 }
 
 void main() {
-  // const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5);
-  // const vec2 inUV = pixelCenter / vec2(gl_LaunchSizeEXT.xy);
+  // vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5);
+  // vec2 inUV = pixelCenter / vec2(gl_LaunchSizeEXT.xy);
   // vec2 d = inUV * 2.0 - 1.0;
 
   mat4 camera_to_world = inverse(guo.camera);
@@ -1021,12 +1300,18 @@ void main() {
     vec2 pixelPoint = vec2(gl_LaunchIDEXT.xy) + vec2(RandomFloat(), RandomFloat());
     vec2 inUV = pixelPoint / vec2(gl_LaunchSizeEXT.xy);
     vec2 d = inUV * 2.0 - 1.0;
-    // const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5);
-    // const vec2 inUV = pixelCenter / vec2(gl_LaunchSizeEXT.xy);
+    // vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5);
+    // vec2 inUV = pixelCenter / vec2(gl_LaunchSizeEXT.xy);
     // vec2 d = inUV * 2.0 - 1.0;
-    vec4 origin = camera_to_world * vec4(0, 0, 0, 1);
-    vec4 target = screen_to_camera * vec4(d.x, d.y, 1, 1);
-    vec4 direction = camera_to_world * vec4(normalize(target.xyz), 0);
+    // vec4 origin = camera_to_world * vec4(0, 0, 0, 1);
+    // vec4 target = screen_to_camera * vec4(d.x, d.y, 1, 1);
+    // vec4 direction = camera_to_world * vec4(normalize(target.xyz), 0);
+    vec3 c_origin = vec3(RandomInCircle() * guo.aperture, 0);
+    vec3 c_target = vec3(screen_to_camera * vec4(d.x, d.y, 1, 1));
+    vec3 c_focal = normalize(c_target) * guo.focal_length;
+    vec3 c_direct = normalize(c_focal - c_origin);
+    vec4 origin = camera_to_world * vec4(c_origin, 1);
+    vec4 direction = camera_to_world * vec4(c_direct, 0);
 
     imageStore(accumulation_color, ivec2(gl_LaunchIDEXT.xy),
                imageLoad(accumulation_color, ivec2(gl_LaunchIDEXT.xy)) +

@@ -64,3 +64,4 @@ uint RandomInt(uint upper) {
 int RandomInt() {
   return int(WangHash(random_device.seed));
 }
+

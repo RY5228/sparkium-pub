@@ -583,7 +583,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
 
       // Loop over vertices in the face.
       std::vector<Vertex> face_vertices;
-      std::cout << "\n";
+      // std::cout << "\n";
       for (size_t v = 0; v < fv; v++) {
         Vertex vertex{};
         // access to vertex
@@ -592,7 +592,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
         tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
         tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
         vertex.position = {vx, vy, vz};
-        std::cout << vx << " " << vy << " " << vz << std::endl;
+        // std::cout << vx << " " << vy << " " << vz << std::endl;
         // Check if `normal_index` is zero or positive. negative = no normal
         // data
         if (idx.normal_index >= 0) {
@@ -680,30 +680,48 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
     material.diffuse.r = mtr.diffuse[0];
     material.diffuse.g = mtr.diffuse[1];
     material.diffuse.b = mtr.diffuse[2];
+    material.albedo_color = glm::vec3(mtr.diffuse[0], mtr.diffuse[1], mtr.diffuse[2]);
     Texture diffuse_texture;
     if (Texture::Load(dir_path + "/" + mtr.diffuse_texname, diffuse_texture)) {
       material.diffuse_texture_id = AddTexture(diffuse_texture, mtr.diffuse_texname);
       material.diffuse = glm::vec3(1.0f);
+      material.albedo_texture_id = material.diffuse_texture_id;
+      material.albedo_color = glm::vec3{1.0f};
     }
 
     material.specular.r = mtr.specular[0];
     material.specular.g = mtr.specular[1];
     material.specular.b = mtr.specular[2];
+    material.specularTint = mtr.specular[0];
     Texture specular_texture;
     if (Texture::Load(dir_path + "/" + mtr.specular_texname, specular_texture)) {
       material.specular_texture_id = AddTexture(specular_texture, mtr.specular_texname);
       material.specular = glm::vec3(1.0f);
+      material.specularTint_texture_id = material.specular_texture_id;
+      material.specularTint = 1;
     }
 
     material.transmittance.r = mtr.transmittance[0];
     material.transmittance.g = mtr.transmittance[1];
     material.transmittance.b = mtr.transmittance[2];
+    material.specTrans = mtr.transmittance[0];
 
     material.emission.r = mtr.emission[0];
     material.emission.g = mtr.emission[1];
     material.emission.b = mtr.emission[2];
+    Texture emission_texture;
+    if (Texture::Load(dir_path + "/" + mtr.emissive_texname, emission_texture)) {
+      material.emission_texture_id = AddTexture(emission_texture, mtr.emissive_texname);
+      material.emission = glm::vec3(1.0f);
+    }
+
 
     material.roughness = mtr.roughness;
+    Texture roughness_texture;
+    if (Texture::Load(dir_path + "/" + mtr.roughness_texname, roughness_texture)) {
+      material.roughness_texture_id = AddTexture(roughness_texture, mtr.roughness_texname);
+      material.roughness = 1;
+    }
     // std::cout << mtr.shininess << std::endl;
 
     material.ior = mtr.ior;
@@ -731,6 +749,30 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
     }
     if (cnt >= 2) {
       material.material_type = MATERIAL_TYPE_PRINCIPLED;
+
+      material.metallic = mtr.metallic;
+      Texture metallic_texture;
+      if (Texture::Load(dir_path + "/" + mtr.metallic_texname, metallic_texture)) {
+        material.metallic_texture_id = AddTexture(metallic_texture, mtr.metallic_texname);
+        material.metallic = 1;
+      }
+
+      material.sheen = mtr.sheen;
+      Texture sheen_texture;
+      if (Texture::Load(dir_path + "/" + mtr.sheen_texname, sheen_texture)) {
+        material.sheen_texture_id = AddTexture(sheen_texture, mtr.sheen_texname);
+        material.sheen = 1;
+      }
+
+      material.clearcoat = mtr.clearcoat_thickness;
+      material.clearcoatGloss = mtr.clearcoat_thickness;
+      material.anisotropy = mtr.anisotropy;
+      material.anisotropyRotation = mtr.anisotropy_rotation;
+
+      Texture normal_texture;
+      if (Texture::Load(dir_path + "/" + mtr.normal_texname, normal_texture)) {
+        material.normal_texture_id = AddTexture(normal_texture, mtr.normal_texname);
+      }
     }
     // std::cout << "material_type is: " << material.material_type << std::endl;
     AddEntity(AcceleratedMesh(mesh), material, transform);
