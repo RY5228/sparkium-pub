@@ -8,6 +8,7 @@
         </transform>
         <fov value="40"/>
         <speed value="100"/>
+        <clamp value="30"/>
     </camera>
 
     <!--Light-->
@@ -26,7 +27,7 @@
         <material type="principled">
             <emission value="30.0 30.0 30.0"/>
             <!-- <emission_strength value="30.0"/> -->
-            <ior value="1.5"/>
+            <ior value="1"/>
             <roughness value="1"/>
         </material>
     </model>
@@ -46,7 +47,7 @@
 
         <material type="principled">
             <albedo value="0.8 0.8 0.8"/>
-            <ior value="1.5"/>
+            <ior value="1"/>
             <roughness value="1"/>
         </material>
     </model>
@@ -66,7 +67,7 @@
 
         <material type="principled">
             <albedo value="0.8 0.8 0.8"/>
-            <ior value="1.5"/>
+            <ior value="1"/>
             <roughness value="1"/>
         </material>
     </model>
@@ -86,7 +87,7 @@
 
         <material type="principled">
             <albedo value="0.8 0.8 0.8"/>
-            <ior value="1.5"/>
+            <ior value="1"/>
             <roughness value="1"/>
         </material>
     </model>
@@ -106,7 +107,7 @@
 
         <material type="principled">
             <albedo value="0.0 0.8 0.0"/>
-            <ior value="1.5"/>
+            <ior value="1"/>
             <roughness value="1"/>
         </material>
     </model>
@@ -126,7 +127,7 @@
 
         <material type="principled">
             <albedo value="0.8 0.0 0.0"/>
-            <ior value="1.5"/>
+            <ior value="1"/>
             <roughness value="1"/>
         </material>
     </model>
@@ -191,7 +192,7 @@
 
         <material type="principled">
             <albedo value="1 1 1"/>
-            <ior value="1.5"/>
+            <ior value="1"/>
             <roughness value="1"/>
         </material>
     </model>
@@ -256,7 +257,7 @@
 
         <material type="principled">
             <albedo value="1 1 1"/>
-            <ior value="1.5"/>
+            <ior value="1"/>
             <metallic value="1"/>
             <roughness value="0"/>
             <!-- <specTrans value="1"/> -->

@@ -88,9 +88,10 @@ glm::mat4 XmlTransformMatrix(const tinyxml2::XMLElement *transform_element) {
         StringToVec3(transform_element->FindAttribute("axis")->Value());
     return glm::rotate(glm::mat4{1.0f}, angle, v);
   } else if (transform_type == "scale") {
-    float scale = std::stof(transform_element->FindAttribute("value")->Value());
+    glm::vec3 scale =
+        StringToVec3(transform_element->FindAttribute("value")->Value());
     // std::cout << "f: " << transform_element->FindAttribute("value")->Value() << std::endl;
-    return glm::mat4{scale};
+    return glm::scale(glm::mat4{1.0f}, scale);
   } else if (transform_type == "world") {
     glm::vec3 scale{1.0f};
     glm::vec3 rotation{0.0f};

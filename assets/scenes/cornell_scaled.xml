@@ -12,7 +12,7 @@
     <!--Scene-->
     <scene type="obj">
 		<filename value="D:\Seafile\Yao Class\Semester 5\Graphics\sparkium\assets\meshes\cornell_box.obj"/>
-        <transform type="scale" value="0.001">
+        <transform type="scale" value="0.001 0.001 0.001">
         </transform>
     </scene>
 

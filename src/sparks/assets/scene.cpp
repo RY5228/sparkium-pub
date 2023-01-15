@@ -387,6 +387,8 @@ Scene::Scene(const std::string &filename) : Scene() {
       float fov = 60.0f;
       float aperture = 0.0f;
       float focal_length = 3.0f;
+      float clamp = 100.0f;
+      float gamma = 2.2f;
       auto grandchild_element = child_element->FirstChildElement("fov");
       if (grandchild_element) {
         fov = std::stof(grandchild_element->FindAttribute("value")->Value());
@@ -401,7 +403,17 @@ Scene::Scene(const std::string &filename) : Scene() {
         focal_length =
             std::stof(grandchild_element->FindAttribute("value")->Value());
       }
-      camera_ = Camera(fov, aperture, focal_length);
+      grandchild_element = child_element->FirstChildElement("clamp");
+      if (grandchild_element) {
+        clamp =
+            std::stof(grandchild_element->FindAttribute("value")->Value());
+      }
+      grandchild_element = child_element->FirstChildElement("gamma");
+      if (grandchild_element) {
+        gamma =
+            std::stof(grandchild_element->FindAttribute("value")->Value());
+      }
+      camera_ = Camera(fov, aperture, focal_length, clamp, gamma);
     } else if (element_type == "model") {
       // std::cout << "0" << std::endl;
       Mesh mesh = Mesh(child_element);
@@ -434,26 +446,34 @@ Scene::Scene(const std::string &filename) : Scene() {
 }
 
 int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform = glm::mat4{1.0f}) {
-  auto cal_tangent = [](Vertex &v0, Vertex &v1, Vertex &v2) {
+  auto default_tangent = [](Vertex &v) {
+    if (fabs(v.normal.x) > fabs(v.normal.y)) {
+      v.tangent = glm::normalize(glm::vec3(v.normal.z, 0, -v.normal.x));
+    } else {
+      v.tangent = glm::normalize(glm::vec3(0, -v.normal.z, v.normal.y));
+    }
+  };
+  auto cal_tangent = [default_tangent](Vertex &v0, Vertex &v1, Vertex &v2) {
     glm::vec3 E0 = v1.position - v0.position;
     glm::vec3 E1 = v2.position - v1.position;
     glm::vec3 E2 = v0.position - v2.position;
     glm::vec2 D0 = v1.tex_coord - v0.tex_coord;
     glm::vec2 D1 = v2.tex_coord - v1.tex_coord;
     glm::vec2 D2 = v0.tex_coord - v2.tex_coord;
-    glm::vec3 T0 = (D0.y * E2 - D2.y * E0) / (D0.y * D2.x - D2.y * D0.x);
-    glm::vec3 T1 = (D1.y * E0 - D0.y * E1) / (D1.y * D0.x - D0.y * D1.x);
-    glm::vec3 T2 = (D2.y * E1 - D1.y * E2) / (D2.y * D1.x - D1.y * D2.x);
+    float a = D0.y * D2.x - D2.y * D0.x;
+    float b = D1.y * D0.x - D0.y * D1.x;
+    float c = D2.y * D1.x - D1.y * D2.x;
+    if (a == 0 || b == 0 || c == 0) {
+      default_tangent(v0);
+      default_tangent(v1);
+      default_tangent(v2);
+      return;
+    }
+    glm::vec3 T0 = (D0.y * E2 - D2.y * E0) / a;
+    glm::vec3 T1 = (D1.y * E0 - D0.y * E1) / b;
+    glm::vec3 T2 = (D2.y * E1 - D1.y * E2) / c;
     v0.tangent = glm::normalize(T0 - glm::dot(T0, v0.normal) * v0.normal);
     v1.tangent = glm::normalize(T1 - glm::dot(T1, v1.normal) * v1.normal);
-    v2.tangent = glm::normalize(T2 - glm::dot(T2, v2.normal) * v2.normal);
-  };
-  auto default_tangent = [](Vertex &v0, Vertex &v1, Vertex &v2) {
-    glm::vec3 T0 = v1.position - v0.position;
-    v0.tangent = glm::normalize(T0 - glm::dot(T0, v0.normal) * v0.normal);
-    glm::vec3 T1 = v2.position - v1.position;
-    v1.tangent = glm::normalize(T1 - glm::dot(T1, v1.normal) * v1.normal);
-    glm::vec3 T2 = v0.position - v2.position;
     v2.tangent = glm::normalize(T2 - glm::dot(T2, v2.normal) * v2.normal);
   };
 
@@ -521,58 +541,101 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
         //   material.ambient = glm::vec3{1.0f};
         // }
 
-        material.diffuse.r = mtr.diffuse[0];
-        material.diffuse.g = mtr.diffuse[1];
-        material.diffuse.b = mtr.diffuse[2];
-        Texture diffuse_texture;
-        if (Texture::Load(dir_path + "/" + mtr.diffuse_texname, diffuse_texture)) {
-          material.diffuse_texture_id = AddTexture(diffuse_texture, mtr.diffuse_texname);
-          material.diffuse = glm::vec3{1.0f};
+      material.diffuse.r = mtr.diffuse[0];
+      material.diffuse.g = mtr.diffuse[1];
+      material.diffuse.b = mtr.diffuse[2];
+      material.albedo_color = glm::vec3(mtr.diffuse[0], mtr.diffuse[1], mtr.diffuse[2]);
+      Texture diffuse_texture;
+      if (Texture::Load(dir_path + "/" + mtr.diffuse_texname, diffuse_texture)) {
+        material.diffuse_texture_id = AddTexture(diffuse_texture, mtr.diffuse_texname);
+        material.diffuse = glm::vec3(1.0f);
+        material.albedo_texture_id = material.diffuse_texture_id;
+        material.albedo_color = glm::vec3{1.0f};
+      }
+
+      material.specular.r = mtr.specular[0];
+      material.specular.g = mtr.specular[1];
+      material.specular.b = mtr.specular[2];
+      material.specularTint = mtr.specular[0];
+      Texture specular_texture;
+      if (Texture::Load(dir_path + "/" + mtr.specular_texname, specular_texture)) {
+        material.specular_texture_id = AddTexture(specular_texture, mtr.specular_texname);
+        material.specular = glm::vec3(1.0f);
+        material.specularTint_texture_id = material.specular_texture_id;
+        material.specularTint = 1;
+      }
+
+      material.transmittance.r = mtr.transmittance[0];
+      material.transmittance.g = mtr.transmittance[1];
+      material.transmittance.b = mtr.transmittance[2];
+      material.specTrans = mtr.transmittance[0];
+
+      material.emission.r = mtr.emission[0];
+      material.emission.g = mtr.emission[1];
+      material.emission.b = mtr.emission[2];
+      Texture emission_texture;
+      if (Texture::Load(dir_path + "/" + mtr.emissive_texname, emission_texture)) {
+        material.emission_texture_id = AddTexture(emission_texture, mtr.emissive_texname);
+        material.emission = glm::vec3(1.0f);
+      }
+
+
+      material.roughness = mtr.roughness;
+      Texture roughness_texture;
+      if (Texture::Load(dir_path + "/" + mtr.roughness_texname, roughness_texture)) {
+        material.roughness_texture_id = AddTexture(roughness_texture, mtr.roughness_texname);
+        material.roughness = 1;
+      }
+      // std::cout << mtr.shininess << std::endl;
+
+      material.ior = mtr.ior;
+
+      // int cnt = 0;
+      // if (mtr.emission[0] > 0 || mtr.emission[1] > 0 || mtr.emission[2] > 0) {
+      //   material.material_type = MATERIAL_TYPE_EMISSION;
+      //   cnt++;
+      //   // std::cout << "emission" << std::endl;
+      // }
+      // if (mtr.transmittance[0] > 0 || mtr.transmittance[1] > 0 || mtr.transmittance[2] > 0) {
+      //   material.material_type = MATERIAL_TYPE_TRANSMISSIVE;
+      //   cnt++;
+      //   // std::cout << "transmittance" << std::endl;
+      // }
+      // if (material.specular_texture_id > 0 || mtr.specular[0] > 0 || mtr.specular[1] > 0 || mtr.specular[2] > 0) {
+      //   material.material_type = MATERIAL_TYPE_SPECULAR;
+      //   cnt++;
+      //   // std::cout << "specular " << material.specular_texture_id << std::endl;
+      // }
+      // if (material.diffuse_texture_id > 0 || mtr.diffuse[0] > 0 || mtr.diffuse[1] > 0 || mtr.diffuse[2] > 0) {
+      //   material.material_type = MATERIAL_TYPE_LAMBERTIAN;
+      //   cnt++;
+      //   // std::cout << "diffuse " << material.diffuse_texture_id << std::endl;
+      // }
+      // if (cnt >= 2) {
+        material.material_type = MATERIAL_TYPE_PRINCIPLED;
+
+        material.metallic = mtr.metallic;
+        Texture metallic_texture;
+        if (Texture::Load(dir_path + "/" + mtr.metallic_texname, metallic_texture)) {
+          material.metallic_texture_id = AddTexture(metallic_texture, mtr.metallic_texname);
+          material.metallic = 1;
         }
 
-        material.specular.r = mtr.specular[0];
-        material.specular.g = mtr.specular[1];
-        material.specular.b = mtr.specular[2];
-        Texture specular_texture;
-        if (Texture::Load(dir_path + "/" + mtr.specular_texname, specular_texture)) {
-          material.specular_texture_id = AddTexture(specular_texture, mtr.specular_texname);
-          material.specular = glm::vec3{1.0f};
+        material.sheen = mtr.sheen;
+        Texture sheen_texture;
+        if (Texture::Load(dir_path + "/" + mtr.sheen_texname, sheen_texture)) {
+          material.sheen_texture_id = AddTexture(sheen_texture, mtr.sheen_texname);
+          material.sheen = 1;
         }
 
-        material.transmittance.r = mtr.transmittance[0];
-        material.transmittance.g = mtr.transmittance[1];
-        material.transmittance.b = mtr.transmittance[2];
+        material.clearcoat = mtr.clearcoat_thickness;
+        material.clearcoatGloss = mtr.clearcoat_roughness;
+        material.anisotropy = mtr.anisotropy;
+        material.anisotropyRotation = mtr.anisotropy_rotation;
 
-        material.emission.r = mtr.emission[0];
-        material.emission.g = mtr.emission[1];
-        material.emission.b = mtr.emission[2];
-
-        material.roughness = mtr.roughness;
-        // std::cout << mtr.shininess << std::endl;
-
-        material.ior = mtr.ior;
-
-        int cnt = 0;
-        if (mtr.emission[0] > 0 || mtr.emission[1] > 0 || mtr.emission[2] > 0) {
-          material.material_type = MATERIAL_TYPE_EMISSION;
-          cnt++;
-        }
-        if (mtr.transmittance[0] > 0 || mtr.transmittance[1] > 0 || mtr.transmittance[2] > 0) {
-          material.material_type = MATERIAL_TYPE_TRANSMISSIVE;
-          cnt++;
-        }
-        // std::cout << "face " << f << " specular: " << material.specular_texture_id << std::endl;
-        if (material.specular_texture_id > 0 || mtr.specular[0] > 0 || mtr.specular[1] > 0 || mtr.specular[2] > 0) {
-          material.material_type = MATERIAL_TYPE_SPECULAR;
-          cnt++;
-        }
-        // std::cout << "face " << f << " diffuse: " << material.diffuse_texture_id << std::endl;
-        if (material.diffuse_texture_id > 0 || mtr.diffuse[0] > 0 || mtr.diffuse[1] > 0 || mtr.diffuse[2] > 0) {
-          material.material_type = MATERIAL_TYPE_LAMBERTIAN;
-          cnt++;
-        }
-        if (cnt >= 2) {
-          material.material_type = MATERIAL_TYPE_PRINCIPLED;
+        Texture normal_texture;
+        if (Texture::Load(dir_path + "/" + mtr.normal_texname, normal_texture)) {
+          material.normal_texture_id = AddTexture(normal_texture, mtr.normal_texname);
         }
         // std::cout << "material_type is: " << material.material_type << std::endl;
         AddEntity(AcceleratedMesh(mesh), material, transform);
@@ -599,7 +662,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
           tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
           tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
           tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
-          vertex.normal = {nx, ny, nz};
+          vertex.normal = glm::normalize(glm::vec3{nx, ny, nz});
         } else {
           vertex.normal = {0.0f, 0.0f, 0.0f};
         }
@@ -644,11 +707,18 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
           v0.tex_coord = glm::vec2{0.0f, 0.0f};
           v1.tex_coord = glm::vec2{0.0f, 0.0f};
           v2.tex_coord = glm::vec2{0.0f, 0.0f};
-          default_tangent(v0, v1, v2);
+          default_tangent(v0);
+          default_tangent(v1);
+          default_tangent(v2);
         }
         else {
           cal_tangent(v0, v1, v2);
         }
+        // other_tangent(v0);
+        // other_tangent(v1);
+        // other_tangent(v2);
+        // if (glm::length(v0.tangent) < 0.5 || glm::length(v1.tangent) < 0.5 || glm::length(v2.tangent) < 0.5)
+        //   std::cout << "Error!" << std::endl;
         indices.push_back(vertices.size());
         indices.push_back(vertices.size() + 1);
         indices.push_back(vertices.size() + 2);
@@ -726,28 +796,28 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
 
     material.ior = mtr.ior;
 
-    int cnt = 0;
-    if (mtr.emission[0] > 0 || mtr.emission[1] > 0 || mtr.emission[2] > 0) {
-      material.material_type = MATERIAL_TYPE_EMISSION;
-      cnt++;
-      // std::cout << "emission" << std::endl;
-    }
-    if (mtr.transmittance[0] > 0 || mtr.transmittance[1] > 0 || mtr.transmittance[2] > 0) {
-      material.material_type = MATERIAL_TYPE_TRANSMISSIVE;
-      cnt++;
-      // std::cout << "transmittance" << std::endl;
-    }
-    if (material.specular_texture_id > 0 || mtr.specular[0] > 0 || mtr.specular[1] > 0 || mtr.specular[2] > 0) {
-      material.material_type = MATERIAL_TYPE_SPECULAR;
-      cnt++;
-      // std::cout << "specular " << material.specular_texture_id << std::endl;
-    }
-    if (material.diffuse_texture_id > 0 || mtr.diffuse[0] > 0 || mtr.diffuse[1] > 0 || mtr.diffuse[2] > 0) {
-      material.material_type = MATERIAL_TYPE_LAMBERTIAN;
-      cnt++;
-      // std::cout << "diffuse " << material.diffuse_texture_id << std::endl;
-    }
-    if (cnt >= 2) {
+    // int cnt = 0;
+    // if (mtr.emission[0] > 0 || mtr.emission[1] > 0 || mtr.emission[2] > 0) {
+    //   material.material_type = MATERIAL_TYPE_EMISSION;
+    //   cnt++;
+    //   // std::cout << "emission" << std::endl;
+    // }
+    // if (mtr.transmittance[0] > 0 || mtr.transmittance[1] > 0 || mtr.transmittance[2] > 0) {
+    //   material.material_type = MATERIAL_TYPE_TRANSMISSIVE;
+    //   cnt++;
+    //   // std::cout << "transmittance" << std::endl;
+    // }
+    // if (material.specular_texture_id > 0 || mtr.specular[0] > 0 || mtr.specular[1] > 0 || mtr.specular[2] > 0) {
+    //   material.material_type = MATERIAL_TYPE_SPECULAR;
+    //   cnt++;
+    //   // std::cout << "specular " << material.specular_texture_id << std::endl;
+    // }
+    // if (material.diffuse_texture_id > 0 || mtr.diffuse[0] > 0 || mtr.diffuse[1] > 0 || mtr.diffuse[2] > 0) {
+    //   material.material_type = MATERIAL_TYPE_LAMBERTIAN;
+    //   cnt++;
+    //   // std::cout << "diffuse " << material.diffuse_texture_id << std::endl;
+    // }
+    // if (cnt >= 2) {
       material.material_type = MATERIAL_TYPE_PRINCIPLED;
 
       material.metallic = mtr.metallic;
@@ -765,7 +835,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
       }
 
       material.clearcoat = mtr.clearcoat_thickness;
-      material.clearcoatGloss = mtr.clearcoat_thickness;
+      material.clearcoatGloss = mtr.clearcoat_roughness;
       material.anisotropy = mtr.anisotropy;
       material.anisotropyRotation = mtr.anisotropy_rotation;
 
@@ -773,7 +843,7 @@ int Scene::LoadObjFile(const std::string &file_path, const glm::mat4 &transform 
       if (Texture::Load(dir_path + "/" + mtr.normal_texname, normal_texture)) {
         material.normal_texture_id = AddTexture(normal_texture, mtr.normal_texname);
       }
-    }
+    // }
     // std::cout << "material_type is: " << material.material_type << std::endl;
     AddEntity(AcceleratedMesh(mesh), material, transform);
     entity_cnt++;

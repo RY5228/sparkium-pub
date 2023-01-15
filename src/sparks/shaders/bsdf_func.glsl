@@ -148,3 +148,14 @@ vec3 UniformSampleHemisphere(vec2 u) {
     return vec3(r * cos(phi), r * sin(phi), z);
 }
 
+float UniformHemispherePdf() { return Inv2Pi; }
+
+vec3 UniformSampleSphere(vec2 u) {
+    float z = 1 - 2 * u[0];
+    float r = sqrt(max(0, 1 - z * z));
+    float phi = 2 * Pi * u[1];
+    return vec3(r * cos(phi), r * sin(phi), z);
+}
+
+float UniformSpherePdf() { return Inv4Pi; }
+

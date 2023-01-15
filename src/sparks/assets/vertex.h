@@ -18,6 +18,16 @@ struct Vertex {
     this->tex_coord = tex_coord;
   }
 
+  Vertex(const glm::vec3 &position,
+         const glm::vec3 &normal,
+         const glm::vec3 &tangent,
+         const glm::vec2 &tex_coord) {
+    this->position = position;
+    this->normal = normal;
+    this->tangent = tangent;
+    this->tex_coord = tex_coord;
+  }
+
   bool operator==(const Vertex &vertex) const {
     return position == vertex.position && normal == vertex.normal &&
            tangent == vertex.tangent && tex_coord == tex_coord;

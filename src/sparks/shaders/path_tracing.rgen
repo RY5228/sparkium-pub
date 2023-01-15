@@ -980,8 +980,8 @@ vec3 Sample_Li(int emission_entity_id, uint face_id, vec2 uLight, out vec3 wi,
   vec3 origin = hit_record.position;
   vec3 origin_norm = hit_record.normal;
   if (emission_entity_id == -1) {
-    pdf = 2.0 * INV_PI;
-    vec3 w = UniformSampleHemisphere(uLight);
+    pdf = UniformSpherePdf();
+    vec3 w = UniformSampleSphere(uLight);
     vec3 tangent = hit_record.tangent;
     vec3 B = normalize(cross(origin_norm, tangent));
     vec3 wi = normalize(tangent * w.x + B * w.y + origin_norm * w.z);
@@ -1023,9 +1023,9 @@ vec3 Sample_Li(int emission_entity_id, uint face_id, vec2 uLight, out vec3 wi,
   return Li;
 }
 
-float Pdf_Li(vec3 wi) {
+float Pdf_Li(int emission_entity_id, uint face_id, vec3 wi) {
   vec3 origin = hit_record.position;
-  if (!TraceRayNoRecord(origin, wi)) return 2.0 * INV_PI;
+  if (emission_entity_id == -1) return UniformSpherePdf();
   ObjectInfo object_info = object_infos[ray_payload.object_id];
   Vertex v0 = GetVertex(
       object_info.vertex_offset +
@@ -1065,6 +1065,24 @@ vec3 EstimateDirect(BSDF bsdf, vec3 wo, vec2 uScattering, vec2 uLight,
                         int emission_entity_id, uint face_id) {
     uint bsdfFlags = BSDF_ALL & ~BSDF_SPECULAR;
     vec3 Ld = vec3(0.f);
+// return hit_record.tangent;
+//     if (emission_entity_id == -1) {
+//       vec3 Li = guo.envmap_minor_color;
+//       vec3 wi = hit_record.normal;
+//       vec3 f_ = f(bsdf, wo, wi, bsdfFlags);
+// // return f_;
+//       Ld += f_ * Li;
+//       wi = guo.envmap_light_direction;
+//       if (!TraceRayNoRecord(hit_record.position, wi)) {
+//         Li = 2.0 * guo.envmap_major_color;
+//         float pdf = Pdf(bsdf, wo, wi, bsdfFlags);
+//         f_ = f(bsdf, wo, wi, bsdfFlags) *
+//               AbsDot(wi, hit_record.normal);
+//         if (pdf > 0) Ld += f_ * Li / pdf;
+//       }
+//       return Ld;
+//     }
+// return vec3(0);
     // Sample light source with multiple importance sampling
     vec3 wi;
     float lightPdf = 0, scatteringPdf = 0;
@@ -1106,7 +1124,7 @@ vec3 EstimateDirect(BSDF bsdf, vec3 wo, vec2 uScattering, vec2 uLight,
             // Account for light contributions along sampled direction _wi_
             float weight = 1;
             if (!sampledSpecular) {
-                lightPdf = Pdf_Li(wi);
+                lightPdf = Pdf_Li(emission_entity_id, face_id, wi);
                 if (lightPdf == 0) return Ld;
                 weight = PowerHeuristic(1, scatteringPdf, 1, lightPdf);
             }
@@ -1127,8 +1145,11 @@ vec3 EstimateDirect(BSDF bsdf, vec3 wo, vec2 uScattering, vec2 uLight,
                       ray_payload.primitive_id == face_id) {
                     Li = hit_record.emission;
                 }
-            } else
-                Li = SampleEnvmap(wi);
+            } else {
+                if (emission_entity_id == -1) {
+                  Li = SampleEnvmap(wi);
+                }
+            }
             hit_record = save_hit_record;
             if (Li != vec3(0)) Ld += f_ * Li * weight / scatteringPdf;
         }
@@ -1139,8 +1160,9 @@ vec3 EstimateDirect(BSDF bsdf, vec3 wo, vec2 uScattering, vec2 uLight,
 vec3 UniformSampleOneLight(BSDF bsdf, vec3 wo) {
     // Randomly choose a single light to sample, _light_
     int nLights = guo.num_emissions;
-    int emission_id = RandomInt(-1, nLights);
-    float lightPdf = 1.0 / (1 + nLights);
+    if (nLights == 0) return vec3(0);
+    int emission_id = RandomInt(nLights);
+    float lightPdf = 1.0 / (nLights);
     int emission_entity_id;
     uint face_id;
     if (emission_id == -1) {

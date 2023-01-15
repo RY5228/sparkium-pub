@@ -4,7 +4,8 @@
 namespace sparks {
 class Camera {
  public:
-  Camera(float fov = 60.0f, float aperture = 0.0f, float focal_length = 3.0f);
+  Camera(float fov = 60.0f, float aperture = 0.0f, float focal_length = 3.0f,
+          float clamp = 100.0f, float gamma = 2.2f);
   [[nodiscard]] glm::mat4 GetProjectionMatrix(float aspect,
                                               float t_min,
                                               float t_max) const;

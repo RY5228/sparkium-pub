@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene>
+    <camera>
+        <transform type="lookat">
+            <eye value="0.416346 3.00269 16.5799"/>
+            <center value="0.416346 2.4 0"/>
+            <up value="0.0 1.0 0.0"/>
+        </transform>
+        <fov value="20"/>
+        <clamp value="20"/>
+        <aperture value="0.25"/>
+        <focal_length value="16.25"/>
+    </camera>
+
+    <scene type="obj">
+		<filename value="D:/Seafile/Yao Class/Semester 5/Graphics/models/scene101/scene-101.obj"/>
+        <!-- <transform type="scale" value=""/> -->
+    </scene>
+
+    <scene type="obj">
+		<filename value="D:/Seafile/Yao Class/Semester 5/Graphics/models/nashida/nashida_4.obj"/>
+        <transform type="translate" value="2.75 0.2 0.328"/>
+        <transform type="scale" value="0.13 0.13 0.13"/>
+        <transform type="rotate" angle="180" axis="0 1 0"/>
+    </scene>
+
+    <scene type="obj">
+		<filename value="D:/Seafile/Yao Class/Semester 5/Graphics/models/coffee/coffee.obj"/>
+        <transform type="translate" value="1.5 0.5 0.0"/>
+        <transform type="scale" value="3 3 3"/>
+        <!-- <transform type="rotate" angle="180" axis="0 1 0"/> -->
+    </scene>
+
+
+    <model name="Light_0">
+		<vertex position = "2.5 0 2.5"/>
+		<vertex position = "2.5 0 -2.5"/>
+		<vertex position = "-2.5 0 -2.5"/>
+		<vertex position = "-2.5 0 2.5"/>
+        <index value="0"/>
+        <index value="1"/>
+        <index value="2"/>
+        <index value="0"/>
+        <index value="2"/>
+        <index value="3"/>
+
+        <material type="principled">
+            <emission value="1 1 1"/>
+            <emission_strength value="18"/>
+        </material>
+
+        <transform type="translate" value="12.3544 13.1071 10.659 "/>
+        <transform type="rotate" angle="55.5521" axis="0.503461 -0.314896 -0.804592"/>
+    </model> -->
+
+    <model name="Light_1">
+		<vertex position = "2.5 0 2.5"/>
+		<vertex position = "2.5 0 -2.5"/>
+		<vertex position = "-2.5 0 -2.5"/>
+		<vertex position = "-2.5 0 2.5"/>
+        <index value="0"/>
+        <index value="1"/>
+        <index value="2"/>
+        <index value="0"/>
+        <index value="2"/>
+        <index value="3"/>
+
+        <material type="principled">
+            <emission value="1 0.646623 0.265359"/>
+            <emission_strength value="8"/>
+        </material>
+
+        <transform type="translate" value="-12.533 8.66299 6.5302 "/>
+        <transform type="rotate" angle="81.9404" axis="0.723918 -0.549693 0.416871"/>
+    </model> -->
+
+    <model name="Light_2">
+		<vertex position = "2.5 0 2.5"/>
+		<vertex position = "2.5 0 -2.5"/>
+		<vertex position = "-2.5 0 -2.5"/>
+		<vertex position = "-2.5 0 2.5"/>
+        <index value="0"/>
+        <index value="1"/>
+        <index value="2"/>
+        <index value="0"/>
+        <index value="2"/>
+        <index value="3"/>
+
+        <material type="principled">
+            <emission value="1 0.646623 0.265359"/>
+            <emission_strength value="8"/>
+        </material>
+
+        <transform type="translate" value="0.380934 16.3641 -1.79617"/>
+        <transform type="rotate" angle="16.2159" axis="0.154233 -0.966606 -0.204661"/>
+    </model> -->
+
+</scene>

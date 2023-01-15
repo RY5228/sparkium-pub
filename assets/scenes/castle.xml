@@ -1,20 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
 <scene>
-    <!-- <camera>
+    <camera>
         <transform type="lookat">
-            <eye value="0.0 0.4 -0.800"/>
-            <center value="0.0 0.4 0.0"/>
+            <eye value="8.53435 7.27 7.13415"/>
+            <center value="0 0 0"/>
             <up value="0.0 1.0 0.0"/>
         </transform>
         <fov value="60"/>
-    </camera> -->
-
-	<envmap type="file" value="../../textures/envmap_clouds_4k.hdr"/>
+        <clamp value="20"/>
+    </camera>
+<!-- 
+	<envmap type="file" value="../../textures/envmap_clouds_4k.hdr"/> -->
 
     <!--Scene-->
+    <!--Light-->
+    <model name="Light_0" type="sphere">
+		<center value="11.734 5.87823 -4.92188"/>
+		<radius value="1.2"/>
+
+        <material type="principled">
+            <emission value="0.310813 0.121189 0"/>
+            <emission_strength value="40"/>
+        </material>
+    </model>
+
+    <model name="Light_1" type="sphere">
+		<center value="-1.22624 3.63706 2.61185"/>
+		<radius value="0.125"/>
+
+        <material type="principled">
+            <emission value="0.259799 0.131255 0.0"/>
+            <emission_strength value="125"/>
+        </material>
+    </model>
+
+    <model name="Light_2" type="sphere">
+		<center value="0.601672 1.89354 -4.08186"/>
+		<radius value="0.125"/>
+
+        <material type="principled">
+            <emission value="0.507069 0.480331 0.046571"/>
+            <emission_strength value="100"/>
+        </material>
+    </model>
+
+    <model name="Light_3" type="sphere">
+		<center value="-1.67807 10.5232 -0.533691"/>
+		<radius value="1.25"/>
+
+        <material type="principled">
+            <emission value="0.013647 0.070903 0.318539"/>
+            <emission_strength value="40"/>
+        </material>
+    </model>
+
+    <model name="Light_4" type="sphere">
+		<center value="-9.57857 6.10088 10.2834"/>
+		<radius value="1.2"/>
+
+        <material type="principled">
+            <emission value="0.045175 0.011 0.259799"/>
+            <emission_strength value="40"/>
+        </material>
+    </model>
+
+    <model name="Light_5" type="sphere">
+		<center value="-4.1902 1.91687 2.14132"/>
+		<radius value="0.125"/>
+
+        <material type="principled">
+            <emission value="0.259799 0.131255 0.0"/>
+            <emission_strength value="250"/>
+        </material>
+    </model>
+
+    <model name="Light_6" type="sphere">
+		<center value="-0.468975 2.85159 -0.590491"/>
+		<radius value="0.125"/>
+
+        <material type="principled">
+            <emission value="0.259799 0.131255 0.0"/>
+            <emission_strength value="250"/>
+        </material>
+    </model>
+
     <scene type="obj">
 		<filename value="D:/Seafile/Yao Class/Semester 5/Graphics/models/castle/low-poly-castle-scene.obj"/>
-        <!-- <transform type="scale" value="0.05"/> -->
+        <!-- <transform type="scale" value=""/> -->
     </scene>
 
 </scene>

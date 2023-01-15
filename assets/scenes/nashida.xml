@@ -14,7 +14,7 @@
     <!--Scene-->
     <scene type="obj">
 		<filename value="D:/Seafile/Yao Class/Semester 5/Graphics/models/nashida/nashida_1.obj"/>
-        <transform type="scale" value="0.05">
+        <transform type="scale" value="0.05 0.05 0.05">
         </transform>
     </scene>
 

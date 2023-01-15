@@ -42,8 +42,9 @@ Mesh Mesh::Sphere(const glm::vec3 &center, float radius) {
     for (int j = 0; j <= 2 * precision; j++) {
       auto normal = glm::vec3{circle[j].x * sin_theta, cos_theta,
                               circle[j].y * sin_theta};
+      auto tangent = glm::normalize(glm::vec3{-circle[j].y, 0, circle[j].x});
       vertices.push_back(
-          Vertex(normal * radius + center, normal,
+          Vertex(normal * radius + center, normal, tangent,
                  {float(j) * inv_precision * 0.5f, float(i) * inv_precision}));
       if (i) {
         int j1 = j + 1;
@@ -288,26 +289,34 @@ const char *Mesh::GetDefaultEntityName() {
 }
 
 Mesh::Mesh(const tinyxml2::XMLElement *element) {
-  auto cal_tangent = [](Vertex &v0, Vertex &v1, Vertex &v2) {
+  auto default_tangent = [](Vertex &v) {
+    if (fabs(v.normal.x) > fabs(v.normal.y)) {
+      v.tangent = glm::normalize(glm::vec3(v.normal.z, 0, -v.normal.x));
+    } else {
+      v.tangent = glm::normalize(glm::vec3(0, -v.normal.z, v.normal.y));
+    }
+  };
+  auto cal_tangent = [default_tangent](Vertex &v0, Vertex &v1, Vertex &v2) {
     glm::vec3 E0 = v1.position - v0.position;
     glm::vec3 E1 = v2.position - v1.position;
     glm::vec3 E2 = v0.position - v2.position;
     glm::vec2 D0 = v1.tex_coord - v0.tex_coord;
     glm::vec2 D1 = v2.tex_coord - v1.tex_coord;
     glm::vec2 D2 = v0.tex_coord - v2.tex_coord;
-    glm::vec3 T0 = (D0.y * E2 - D2.y * E0) / (D0.y * D2.x - D2.y * D0.x);
-    glm::vec3 T1 = (D1.y * E0 - D0.y * E1) / (D1.y * D0.x - D0.y * D1.x);
-    glm::vec3 T2 = (D2.y * E1 - D1.y * E2) / (D2.y * D1.x - D1.y * D2.x);
+    float a = D0.y * D2.x - D2.y * D0.x;
+    float b = D1.y * D0.x - D0.y * D1.x;
+    float c = D2.y * D1.x - D1.y * D2.x;
+    if (a == 0 || b == 0 || c == 0) {
+      default_tangent(v0);
+      default_tangent(v1);
+      default_tangent(v2);
+      return;
+    }
+    glm::vec3 T0 = (D0.y * E2 - D2.y * E0) / a;
+    glm::vec3 T1 = (D1.y * E0 - D0.y * E1) / b;
+    glm::vec3 T2 = (D2.y * E1 - D1.y * E2) / c;
     v0.tangent = glm::normalize(T0 - glm::dot(T0, v0.normal) * v0.normal);
     v1.tangent = glm::normalize(T1 - glm::dot(T1, v1.normal) * v1.normal);
-    v2.tangent = glm::normalize(T2 - glm::dot(T2, v2.normal) * v2.normal);
-  };
-  auto default_tangent = [](Vertex &v0, Vertex &v1, Vertex &v2) {
-    glm::vec3 T0 = v1.position - v0.position;
-    v0.tangent = glm::normalize(T0 - glm::dot(T0, v0.normal) * v0.normal);
-    glm::vec3 T1 = v2.position - v1.position;
-    v1.tangent = glm::normalize(T1 - glm::dot(T1, v1.normal) * v1.normal);
-    glm::vec3 T2 = v0.position - v2.position;
     v2.tangent = glm::normalize(T2 - glm::dot(T2, v2.normal) * v2.normal);
   };
 
@@ -393,7 +402,9 @@ Mesh::Mesh(const tinyxml2::XMLElement *element) {
         v1.tex_coord = glm::vec2{0.0f, 0.0f};
         v2.tex_coord = glm::vec2{0.0f, 0.0f};
         // std::cout << "1" << std::endl;
-        default_tangent(v0, v1, v2);
+        default_tangent(v0);
+        default_tangent(v1);
+        default_tangent(v2);
       }
       else {
         cal_tangent(v0, v1, v2);
